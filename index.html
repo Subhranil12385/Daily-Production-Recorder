@@ -18,6 +18,7 @@
   --topbar:#1a2d42; --topbar-ac:#c97a08; --tab-bg:#f8fafb;
   --shadow:0 1px 4px rgba(0,0,0,.09); --shadow2:0 4px 18px rgba(0,0,0,.11);
   --row-hover:rgba(26,95,180,.04);
+  --admin:#7c3aed; --admin2:#6d28d9;
 }
 body.dark {
   --bg:#0b1929; --bg2:#0f2035; --surface:#132840; --card:#162f4a;
@@ -29,9 +30,32 @@ body.dark {
   --topbar:#0f2035; --topbar-ac:#f0a500; --tab-bg:#0f2035;
   --shadow:0 1px 4px rgba(0,0,0,.4); --shadow2:0 4px 18px rgba(0,0,0,.5);
   --row-hover:rgba(255,255,255,.025);
+  --admin:#9f67ff; --admin2:#8b5cf6;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;}
+
+/* ── LOADING OVERLAY ── */
+#loadingOverlay{
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .4s ease;
+}
+#loadingOverlay.hidden{opacity:0;pointer-events:none;}
+.ld-spinner{
+  width:48px;height:48px;
+  border:5px solid var(--border);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:ldSpin .8s linear infinite;
+}
+@keyframes ldSpin{to{transform:rotate(360deg);}}
+.ld-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;
+  color:var(--accent);margin-top:18px;letter-spacing:3px;text-transform:uppercase;
+}
+.ld-sub{font-size:12px;color:var(--muted);margin-top:7px;letter-spacing:.5px;}
+
 .topbar{background:var(--topbar);border-bottom:3px solid var(--topbar-ac);padding:0 14px;height:50px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:var(--shadow2);}
 .topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;color:#fff;}
 .topbar-title em{color:var(--topbar-ac);font-style:normal;}
@@ -43,11 +67,17 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-green{background:var(--green);color:#fff;} .btn-green:hover{background:var(--green2);}
 .btn-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--muted);}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-admin{background:var(--admin);color:#fff;font-size:12px;padding:6px 11px;}
+.btn-admin:hover{background:var(--admin2);}
+.btn-red{background:var(--red);color:#fff;} .btn-red:hover{filter:brightness(1.1);}
+.btn-sm{font-size:11px;padding:4px 9px;}
 .btn:active{transform:scale(.97);} .btn:disabled{opacity:.42;cursor:not-allowed;transform:none;}
 .datebar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:var(--shadow);}
 .ctrl-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--accent);text-transform:uppercase;}
 input[type="date"]{background:var(--bg);border:1.5px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:'Barlow',sans-serif;font-size:14px;outline:none;-webkit-appearance:none;cursor:pointer;}
 input[type="date"]:focus{border-color:var(--accent);}
+input[type="text"],input[type="password"]{background:var(--bg);border:1.5px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-family:'Barlow',sans-serif;font-size:14px;outline:none;}
+input[type="text"]:focus,input[type="password"]:focus{border-color:var(--accent);}
 .chip{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.4px;padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;}
 .chip-load{background:rgba(201,122,8,.12);color:var(--accent);}
 .chip-ok{background:rgba(26,122,66,.12);color:var(--green);}
@@ -93,7 +123,9 @@ input[type="date"]:focus{border-color:var(--accent);}
 .save-bar{position:sticky;bottom:0;z-index:100;background:var(--surface);border-top:1px solid var(--border);padding:8px 14px;display:flex;gap:7px;align-items:center;justify-content:flex-end;box-shadow:0 -2px 12px rgba(0,0,0,.08);}
 body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 #saveStatus{flex:1;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;}
+
+/* ── MODAL BASE ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center;}
 .modal-bg.show{display:flex;}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;width:420px;max-width:95vw;box-shadow:var(--shadow2);}
 .modal h3{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;color:var(--accent);margin-bottom:16px;letter-spacing:1px;}
@@ -115,6 +147,65 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 .exp-progress p{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;}
 .progress-bar-wrap{background:var(--border);border-radius:20px;height:6px;overflow:hidden;}
 .progress-bar-fill{background:var(--accent);height:100%;border-radius:20px;transition:width .25s;}
+
+/* ── ADMIN MODAL ── */
+.admin-modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:0;width:780px;max-width:97vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--shadow2);overflow:hidden;}
+.admin-modal-head{background:var(--admin);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.admin-modal-head h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+.admin-badge{background:rgba(255,255,255,.22);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:1px;}
+.admin-close{background:rgba(255,255,255,.18);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.14s;}
+.admin-close:hover{background:rgba(255,255,255,.32);}
+.admin-body{display:flex;flex:1;overflow:hidden;}
+.admin-sidebar{width:210px;background:var(--bg2);border-right:1px solid var(--border);padding:10px 8px;overflow-y:auto;flex-shrink:0;}
+.admin-sidebar-title{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:4px 8px 8px;}
+.admin-sec-item{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;padding:7px 8px;border-radius:7px;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:4px;transition:.14s;margin-bottom:2px;}
+.admin-sec-item:hover{background:var(--border);}
+.admin-sec-item.active{background:var(--admin);color:#fff;}
+.admin-sec-item .sec-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.admin-sec-item .mcount{font-size:10px;opacity:.65;flex-shrink:0;}
+.sec-reorder-btns{display:flex;flex-direction:column;gap:1px;flex-shrink:0;}
+.sec-reorder-btn{background:none;border:none;cursor:pointer;font-size:9px;padding:1px 3px;line-height:1.3;border-radius:3px;transition:.1s;color:var(--muted);}
+.admin-sec-item.active .sec-reorder-btn{color:rgba(255,255,255,.65);}
+.sec-reorder-btn:hover:not(:disabled){background:rgba(0,0,0,.12);color:var(--accent);}
+.admin-sec-item.active .sec-reorder-btn:hover:not(:disabled){background:rgba(255,255,255,.2);color:#fff;}
+.sec-reorder-btn:disabled{opacity:.3;cursor:not-allowed;}
+.admin-sec-add{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.admin-content{flex:1;overflow-y:auto;padding:16px;}
+.admin-section-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:var(--admin);letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.admin-section-title .uom-edit{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);}
+.admin-section-title .uom-edit input{width:80px;font-size:12px;padding:3px 7px;border-radius:5px;}
+.admin-field-row{display:flex;gap:6px;margin-bottom:8px;}
+.admin-field-row input{flex:1;}
+.admin-machine-list{margin-bottom:16px;}
+.admin-machine-row{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--border);border-radius:7px;margin-bottom:5px;background:var(--surface);transition:.12s;}
+.admin-machine-row:hover{border-color:var(--border2);}
+.admin-machine-row .drag-handle{color:var(--muted);cursor:grab;font-size:14px;user-select:none;flex-shrink:0;}
+.admin-machine-row .drag-handle:active{cursor:grabbing;}
+.admin-machine-row input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;outline:none;padding:0;}
+.admin-machine-row input:focus{color:var(--admin);}
+.admin-machine-row .del-m{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 2px;line-height:1;transition:.14s;flex-shrink:0;}
+.admin-machine-row .del-m:hover{color:var(--red);}
+.admin-machine-row.dragging{opacity:.4;border-style:dashed;}
+.admin-machine-row.drag-over{border-color:var(--admin);background:rgba(124,58,237,.08);}
+.admin-section-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border);margin-top:10px;}
+.admin-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--bg2);flex-shrink:0;}
+.admin-saving{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;flex:1;}
+
+/* ── PASSWORD MODAL ── */
+.pwd-modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;width:340px;max-width:95vw;box-shadow:var(--shadow2);}
+.pwd-modal h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--admin);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.pwd-modal p{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.pwd-field{position:relative;margin-bottom:12px;}
+.pwd-field input{width:100%;padding-right:38px;}
+.pwd-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px;}
+.pwd-error{color:var(--red);font-size:12px;margin-bottom:10px;display:none;}
+.pwd-error.show{display:block;}
+
+/* CONFIRM MODAL */
+.confirm-modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;width:360px;max-width:95vw;box-shadow:var(--shadow2);}
+.confirm-modal h4{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:var(--red);margin-bottom:10px;}
+.confirm-modal p{font-size:13px;color:var(--text);margin-bottom:18px;line-height:1.5;}
+
 #toast{position:fixed;bottom:64px;right:14px;background:var(--topbar);border-left:4px solid var(--green);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:.24s;z-index:999;pointer-events:none;min-width:180px;box-shadow:var(--shadow2);}
 #toast.show{opacity:1;transform:translateY(0);}
 #toast.err{border-left-color:var(--red);}
@@ -123,11 +214,19 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 </head>
 <body>
 
+<!-- ══ FULL-PAGE LOADING OVERLAY ══ -->
+<div id="loadingOverlay">
+  <div class="ld-spinner"></div>
+  <div class="ld-title">Loading…</div>
+  <div class="ld-sub">Fetching configuration &amp; production data</div>
+</div>
+
 <div class="topbar">
   <div class="topbar-title"><em>DAILY</em> PRODUCTION RECORDER</div>
   <div class="topbar-r">
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
     <button class="btn btn-accent" onclick="openExport()">📥 Export</button>
+    <button class="btn btn-admin" onclick="openAdminLogin()" title="Admin Panel">⚙ Admin</button>
   </div>
 </div>
 
@@ -183,10 +282,68 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
       </div>
       <div class="exp-opt" onclick="doExport('ajay')">
         <h4>📊 Ajay Sir's Format</h4>
-        <p>All machines areanged alphabetically in one sheet, date-wise raw data</p>
+        <p>All machines arranged alphabetically in one sheet, date-wise raw data</p>
       </div>
     </div>
     <button class="btn btn-ghost" style="width:100%;margin-top:6px;justify-content:center;" onclick="closeExport()">Cancel</button>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-bg" id="pwdModal">
+  <div class="pwd-modal">
+    <h3>🔐 Admin Access</h3>
+    <p>Enter the master password to access the Admin Panel.</p>
+    <div class="pwd-field">
+      <input type="password" id="pwdInput" placeholder="Password" onkeydown="if(event.key==='Enter')verifyAdmin()"/>
+      <button class="pwd-toggle" onclick="togglePwdVis()" id="pwdToggle">👁</button>
+    </div>
+    <div class="pwd-error" id="pwdError">❌ Incorrect password. Please try again.</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-admin" style="flex:1;justify-content:center;" onclick="verifyAdmin()">Unlock</button>
+      <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="closePwdModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL MODAL -->
+<div class="modal-bg" id="adminModal">
+  <div class="admin-modal">
+    <div class="admin-modal-head">
+      <h3>⚙ Admin Panel <span class="admin-badge">MASTER</span></h3>
+      <button class="admin-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="admin-body">
+      <div class="admin-sidebar">
+        <div class="admin-sidebar-title">Sections (drag ▲▼ to reorder)</div>
+        <div id="adminSectionList"></div>
+        <div class="admin-sec-add">
+          <button class="btn btn-admin btn-sm" style="width:100%;justify-content:center;" onclick="addNewSection()">+ New Section</button>
+        </div>
+      </div>
+      <div class="admin-content" id="adminContent">
+        <div style="color:var(--muted);font-size:13px;margin-top:40px;text-align:center;">
+          ← Select a section to edit
+        </div>
+      </div>
+    </div>
+    <div class="admin-footer">
+      <span class="admin-saving" id="adminSaving"></span>
+      <button class="btn btn-ghost btn-sm" onclick="closeAdmin()">Close</button>
+      <button class="btn btn-green btn-sm" onclick="saveAdminChanges()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-bg" id="confirmModal">
+  <div class="confirm-modal">
+    <h4 id="confirmTitle">Confirm Delete</h4>
+    <p id="confirmMsg"></p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-red btn-sm" style="flex:1;justify-content:center;" id="confirmOkBtn">Delete</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;" onclick="closeConfirm()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -194,9 +351,9 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 
 <script>
 // ════════════════════════════════════════
-//  APPS SCRIPT ENDPOINT — update this URL after each new deployment
+//  APPS SCRIPT ENDPOINT
 // ════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwPoQIVaVRzRNX_MKpRXPLb4SM5PgP0WFrxRqySLy5eYKfxF5jeXx4lqP0RD8EtzRiJ/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzNzge0EvFqSOWrbvXXRw-vZCwh_0-ZGyk9ZLlOKtWGN_FZ_x8OQ8LtpgkdsrnefTNy/exec';
 
 function gasGet(params) {
   const qs = new URLSearchParams(params).toString();
@@ -211,36 +368,42 @@ function gasPost(body) {
 }
 
 // ════════════════════════════════════════
-//  CONFIG — Shift 1/2/3 only, no A/B/C
+//  CONFIG
 // ════════════════════════════════════════
-const SECTIONS = {
+let SECTIONS = {
+  'Peeling':        { machines:['PEELING-1','PEELING-2','PEELING-3','PEELING-4','PEELING-8FT'], uom:'CBM' },
   'Dryer':          { machines:['Dryer 1','Dryer 2','Dryer 3','Dryer 4','Dryer 5'], uom:'CBM' },
-  'Calibrator':     { machines:['CALIBRATOR','CALIBRATOR-2','CALIBRATOR-3'], uom:'PCS' },
   'Core Composer':  { machines:['CORE COMPOSER-1','CORE COMPOSER-2','CORE COMPOSER-3','CORE COMPOSER-4','CORE COMPOSER-5','CORE COMPOSER-6','CORE COMPOSER-7','CORE COMPOSER-8','CORE COMPOSER-9','CORE COMPOSER-10'], uom:'SQM' },
   'Finger Jointer': { machines:['FINGER JOINTER-1','FINGER JOINTER-2','FINGER JOINTER-3'], uom:'SQM' },
-  'Glue Spreader':  { machines:['GLUE SPREADER NO-1','GLUE SPREADER NO-2','GLUE SPREADER NO-3','GLUE SPREADER NO-4','GLUE SPREADER NO-5','GLUE SPREADER NO-6','GLUE SPREADER NO-7','GLUE SPREADER NO-8','GLUE SPREADER NO-9 (O/L)','GLUE SPREADER NO-10 (O/L)'], uom:'SQM' },
-  'Hot Press':      { machines:['HOT PRESS NO-1','HOT PRESS NO-2','HOT PRESS NO-3','HOT PRESS NO-4','HOT PRESS NO-5 (R/F)','HOT PRESS NO-6'], uom:'NOS' },
-  'Peeling':        { machines:['PEELING-1','PEELING-2','PEELING-3','PEELING-4','PEELING-8FT'], uom:'CBM' },
-  'Pre Press':      { machines:['PRE PRESS NO-1','PRE PRESS NO-2','PRE PRESS NO-3','PRE PRESS NO-4','PRE PRESS NO-5','PRE PRESS NO-6','PRE PRESS NO-7'], uom:'NOS' },
   'Resin':          { machines:['RESIN KETTLE-1','RESIN KETTLE-2','RESIN KETTLE-3'], uom:'KGS.' },
+  'Glue Spreader':  { machines:['GLUE SPREADER NO-1','GLUE SPREADER NO-2','GLUE SPREADER NO-3','GLUE SPREADER NO-4','GLUE SPREADER NO-5','GLUE SPREADER NO-6','GLUE SPREADER NO-7','GLUE SPREADER NO-8','GLUE SPREADER NO-9 (O/L)','GLUE SPREADER NO-10 (O/L)'], uom:'SQM' },
+  'Pre Press':      { machines:['PRE PRESS NO-1','PRE PRESS NO-2','PRE PRESS NO-3','PRE PRESS NO-4','PRE PRESS NO-5','PRE PRESS NO-6','PRE PRESS NO-7'], uom:'NOS' },
+  'Hot Press':      { machines:['HOT PRESS NO-1','HOT PRESS NO-2','HOT PRESS NO-3','HOT PRESS NO-4','HOT PRESS NO-5 (R/F)','HOT PRESS NO-6'], uom:'NOS' },
+  'Calibrator':     { machines:['CALIBRATOR','CALIBRATOR-2','CALIBRATOR-3'], uom:'PCS' },
   'Finishing':      { machines:['STEEL WOOL MACHINE','DDSAW/WBS-1&2/SQUEZER','GRECON','STAMPING MACHINE-1','STAMPING MACHINE-2'], uom:'PCS' }
 };
-const SNAMES  = Object.keys(SECTIONS);
-const SHIFTS  = ['Shift 1', 'Shift 2', 'Shift 3'];   // ← only 1/2/3, never A/B/C
+
+let SNAMES  = Object.keys(SECTIONS);
+const SHIFTS  = ['Shift 1', 'Shift 2', 'Shift 3'];
 const SH_CLS  = ['sha', 'shb', 'shc'];
 const SH_VCLS = ['sha-v', 'shb-v', 'shc-v'];
 
 const AJAY_EXTRA_MACHINES = ['Cooling tower'];
-const MACHINE_SECTION_MAP = {};
-SNAMES.forEach(name => {
-  SECTIONS[name].machines.forEach((m, mi) => {
-    MACHINE_SECTION_MAP[m] = { section: name, machineIdx: mi };
+let MACHINE_SECTION_MAP = {};
+
+function rebuildMachineMap() {
+  MACHINE_SECTION_MAP = {};
+  SNAMES.forEach(name => {
+    SECTIONS[name].machines.forEach((m, mi) => {
+      MACHINE_SECTION_MAP[m] = { section: name, machineIdx: mi };
+    });
   });
-});
+}
+
 function getAjayMachineList() {
   const all = [];
   SNAMES.forEach(name => SECTIONS[name].machines.forEach(m => all.push(m)));
-  AJAY_EXTRA_MACHINES.forEach(m => all.push(m));
+  AJAY_EXTRA_MACHINES.forEach(m => { if (!MACHINE_SECTION_MAP[m]) all.push(m); });
   return all.slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 }
 
@@ -251,16 +414,33 @@ let active = SNAMES[0];
 let fetchToken = 0;
 
 // ════════════════════════════════════════
-//  INIT
+//  INIT — async, shows loading overlay
 // ════════════════════════════════════════
-function init() {
+async function init() {
   applyTheme();
+  // Show loading overlay (already visible by default from HTML)
+  try {
+    const res = await gasGet({ action: 'getSectionsConfig' });
+    if (res && res.sections && Object.keys(res.sections).length > 0) {
+      SECTIONS = res.sections;
+      SNAMES = Object.keys(SECTIONS);
+      SNAMES.forEach(s => { if (!baseline[s]) baseline[s] = {}; });
+    }
+  } catch(e) { /* fallback to defaults */ }
+  rebuildMachineMap();
   const yesterday = isoYesterday();
   document.getElementById('entryDate').value   = yesterday;
   document.getElementById('expDateFrom').value = yesterday;
   document.getElementById('expDateTo').value   = yesterday;
-  buildTabs(); buildPanels(); setActive(SNAMES[0]); fetchAll(false);
+  buildTabs(); buildPanels(); setActive(SNAMES[0]);
+  // Await the full data load before hiding overlay
+  await fetchAll(false);
+  // Fade out and remove overlay
+  const ol = document.getElementById('loadingOverlay');
+  ol.classList.add('hidden');
+  setTimeout(() => { ol.style.display = 'none'; }, 420);
 }
+
 function applyTheme() {
   const dark = localStorage.getItem('theme') === 'dark';
   document.body.classList.toggle('dark', dark);
@@ -292,7 +472,7 @@ function setPreset(p, btn) {
 }
 function getAllStoredDates() {
   const s = new Set();
-  SNAMES.forEach(n => Object.keys(baseline[n]).forEach(d => s.add(d)));
+  SNAMES.forEach(n => Object.keys(baseline[n] || {}).forEach(d => s.add(d)));
   if (!s.size) s.add(curDate());
   return [...s].sort();
 }
@@ -311,6 +491,7 @@ function buildTabs() {
   ).join('');
 }
 function setActive(name) {
+  if (!SECTIONS[name]) name = SNAMES[0];
   active = name;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
@@ -395,48 +576,54 @@ function recalcAll(name) { const id = sl(name); SECTIONS[name].machines.forEach(
 function inp(id, mi, si) { return document.getElementById(`i-${id}-${mi}-${si}`); }
 
 // ════════════════════════════════════════
-//  FETCH / SAVE
+//  FETCH / SAVE  — fetchAll returns Promise
 // ════════════════════════════════════════
 function onDateChange() { Object.keys(dirtyMap).forEach(k => delete dirtyMap[k]); refreshSaveStatus(); fetchAll(false); }
 
 function fetchAll(manual) {
-  const iso = curDate(), disp = toDisp(iso), token = ++fetchToken;
-  setChip('load', '⏳ Loading…'); setBtnState('load', true);
-  SNAMES.forEach(name => {
-    const id = sl(name);
-    const dhEl = document.getElementById(`dh-${id}`); if (dhEl) dhEl.textContent = disp;
-    SECTIONS[name].machines.forEach((_, mi) => SHIFTS.forEach((__, si) => {
-      const el = inp(id, mi, si); if (el) { el.value = ''; el.classList.remove('dirty', 'saved'); }
-    }));
-    recalcAll(name); refreshDot(name);
-  });
+  return new Promise((resolveAll) => {
+    const iso = curDate(), disp = toDisp(iso), token = ++fetchToken;
+    setChip('load', '⏳ Loading…'); setBtnState('load', true);
+    SNAMES.forEach(name => {
+      const id = sl(name);
+      const dhEl = document.getElementById(`dh-${id}`); if (dhEl) dhEl.textContent = disp;
+      SECTIONS[name].machines.forEach((_, mi) => SHIFTS.forEach((__, si) => {
+        const el = inp(id, mi, si); if (el) { el.value = ''; el.classList.remove('dirty', 'saved'); }
+      }));
+      recalcAll(name); refreshDot(name);
+    });
 
-  let pending = SNAMES.length * SHIFTS.length; const errors = [];
-  SNAMES.forEach(name => {
-    SHIFTS.forEach((sh, si) => {
-      // Send 'Shift 1/2/3' — the GAS script now understands only these
-      gasGet({ action: 'getShiftData', section: name, date: disp, shift: sh })
-        .then(res => {
-          if (token !== fetchToken) return;
-          applyFetched(name, si, res, iso); pending--;
-          if (pending <= 0) {
-            if (!errors.length) { setChip('ok', '✓ Loaded'); if (manual) showToast('✅ Data loaded'); }
-            else { setChip('err', '⚠ Partial load'); showToast('⚠ Some data failed — press ↺ Load', false, true); }
-            setBtnState('load', false);
-          }
-        })
-        .catch(err => {
-          if (token !== fetchToken) return;
-          errors.push(err); pending--;
-          if (pending <= 0) { setChip('err', '⚠ Load error'); setBtnState('load', false); showToast('⚠ Load failed — check connection', false, true); }
-        });
+    let pending = SNAMES.length * SHIFTS.length; const errors = [];
+    if (pending === 0) { resolveAll(); return; }
+
+    SNAMES.forEach(name => {
+      SHIFTS.forEach((sh, si) => {
+        gasGet({ action: 'getShiftData', section: name, date: disp, shift: sh })
+          .then(res => {
+            if (token !== fetchToken) return;
+            applyFetched(name, si, res, iso); pending--;
+            if (pending <= 0) {
+              if (!errors.length) { setChip('ok', '✓ Loaded'); if (manual) showToast('✅ Data loaded'); }
+              else { setChip('err', '⚠ Partial load'); showToast('⚠ Some data failed — press ↺ Load', false, true); }
+              setBtnState('load', false);
+              resolveAll();
+            }
+          })
+          .catch(err => {
+            if (token !== fetchToken) return;
+            errors.push(err); pending--;
+            if (pending <= 0) {
+              setChip('err', '⚠ Load error'); setBtnState('load', false);
+              showToast('⚠ Load failed — check connection', false, true);
+              resolveAll();
+            }
+          });
+      });
     });
   });
 }
 
 function applyFetched(name, si, res, iso) {
-  // Always mark this slot as fetched (even if empty) so the export
-  // missing-check knows not to re-fetch it and export fires with correct data.
   const values = (res?.values?.length) ? res.values : [];
   setBase(name, iso, si, values);
   if (iso !== curDate()) return;
@@ -459,7 +646,7 @@ function smartSave() {
   let pending = gkeys.length;
   gkeys.forEach(gk => {
     const { name, si, cells } = groups[gk];
-    const sh = SHIFTS[si];   // 'Shift 1', 'Shift 2', or 'Shift 3'
+    const sh = SHIFTS[si];
     const machines = SECTIONS[name].machines.map((_, mi) => mi in cells ? (cells[mi] !== '' ? +cells[mi] : '') : null);
     const payload = { action: 'submitShiftData', date: disp, shift: sh, section: name, machines, sparse: true };
     sendWithRetry(payload,
@@ -504,6 +691,333 @@ function sendWithRetry(payload, onOk, onFail, attempt = 1) {
 }
 
 // ════════════════════════════════════════
+//  ADMIN — PASSWORD
+// ════════════════════════════════════════
+const ADMIN_PASSWORD = 'plywood@123';
+let adminUnlocked = false;
+
+function openAdminLogin() {
+  if (adminUnlocked) { openAdmin(); return; }
+  document.getElementById('pwdInput').value = '';
+  document.getElementById('pwdError').classList.remove('show');
+  document.getElementById('pwdModal').classList.add('show');
+  setTimeout(() => document.getElementById('pwdInput').focus(), 100);
+}
+function closePwdModal() { document.getElementById('pwdModal').classList.remove('show'); }
+function togglePwdVis() {
+  const inp = document.getElementById('pwdInput');
+  const btn = document.getElementById('pwdToggle');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+function verifyAdmin() {
+  const val = document.getElementById('pwdInput').value;
+  if (val === ADMIN_PASSWORD) {
+    adminUnlocked = true; closePwdModal(); openAdmin();
+  } else {
+    document.getElementById('pwdError').classList.add('show');
+    document.getElementById('pwdInput').value = '';
+    document.getElementById('pwdInput').focus();
+  }
+}
+
+// ════════════════════════════════════════
+//  ADMIN — PANEL
+//  FIX: adminDraft tracks _originalName so renames
+//       map to sheet renames (not new sheet creation).
+//  FIX: Section reorder via ▲▼ buttons in sidebar.
+// ════════════════════════════════════════
+let adminDraft = null;
+let adminActiveSec = null;
+let dragSrcIdx = null;
+
+function openAdmin() {
+  // Deep copy SECTIONS into adminDraft, preserving original name for rename detection
+  adminDraft = {};
+  Object.entries(SECTIONS).forEach(([name, sec]) => {
+    adminDraft[name] = {
+      machines: [...sec.machines],
+      uom: sec.uom,
+      _originalName: name   // tracks GAS sheet name — never changes on rename
+    };
+  });
+  adminActiveSec = Object.keys(adminDraft)[0] || null;
+  renderAdminSidebar();
+  if (adminActiveSec) renderAdminContent(adminActiveSec);
+  document.getElementById('adminSaving').textContent = '';
+  document.getElementById('adminModal').classList.add('show');
+}
+function closeAdmin() { document.getElementById('adminModal').classList.remove('show'); }
+
+function renderAdminSidebar() {
+  const list = document.getElementById('adminSectionList');
+  const keys = Object.keys(adminDraft);
+  list.innerHTML = keys.map((name, idx) => `
+    <div class="admin-sec-item${name===adminActiveSec?' active':''}" onclick="adminSelectSection('${escapeSingleQ(name)}')">
+      <span class="sec-label">${name}</span>
+      <span class="mcount">${adminDraft[name].machines.length}</span>
+      <div class="sec-reorder-btns" onclick="event.stopPropagation()">
+        <button class="sec-reorder-btn" title="Move up"
+          onclick="moveSectionUp('${escapeSingleQ(name)}')" ${idx===0?'disabled':''}>▲</button>
+        <button class="sec-reorder-btn" title="Move down"
+          onclick="moveSectionDown('${escapeSingleQ(name)}')" ${idx===keys.length-1?'disabled':''}>▼</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Section reorder helpers ──────────────────────────────
+function moveSectionUp(name) {
+  const entries = Object.entries(adminDraft);
+  const idx = entries.findIndex(([k]) => k === name);
+  if (idx <= 0) return;
+  [entries[idx-1], entries[idx]] = [entries[idx], entries[idx-1]];
+  adminDraft = Object.fromEntries(entries);
+  renderAdminSidebar();
+}
+function moveSectionDown(name) {
+  const entries = Object.entries(adminDraft);
+  const idx = entries.findIndex(([k]) => k === name);
+  if (idx >= entries.length-1) return;
+  [entries[idx], entries[idx+1]] = [entries[idx+1], entries[idx]];
+  adminDraft = Object.fromEntries(entries);
+  renderAdminSidebar();
+}
+
+function adminSelectSection(name) {
+  adminActiveSec = name;
+  renderAdminSidebar();
+  renderAdminContent(name);
+}
+
+function renderAdminContent(name) {
+  const sec = adminDraft[name];
+  const content = document.getElementById('adminContent');
+  const isNew = !sec._originalName || sec._originalName === name;
+  content.innerHTML = `
+    <div class="admin-section-title">
+      <span id="secNameDisp">${name}</span>
+      <div class="uom-edit">
+        <span style="color:var(--blue);font-weight:700;font-size:11px;">UOM:</span>
+        <input type="text" id="adminUOM" value="${sec.uom}" style="width:80px;font-size:12px;padding:4px 8px;"
+          oninput="adminDraft['${escapeSingleQ(name)}'].uom=this.value"/>
+      </div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">
+        Section Name
+      </div>
+      <div class="admin-field-row">
+        <input type="text" id="adminSecName" value="${name}" placeholder="Section name" style="font-weight:600;"/>
+        <button class="btn btn-ghost btn-sm" onclick="renameSection('${escapeSingleQ(name)}')">Rename</button>
+      </div>
+      ${!isNew ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;">
+        Original sheet name: <strong>${sec._originalName}</strong>
+        ${sec._originalName !== name ? ' → will be renamed to <strong>' + name + '</strong>' : ''}
+      </div>` : ''}
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">
+      Machines / Equipment <span style="opacity:.5;font-size:9px;">(drag to reorder)</span>
+    </div>
+    <div class="admin-machine-list" id="adminMachineList">
+      ${sec.machines.map((m, mi) => buildMachineRow(name, m, mi)).join('')}
+    </div>
+    <div class="admin-field-row" style="margin-bottom:14px;">
+      <input type="text" id="newMachineName" placeholder="New machine / equipment name…" onkeydown="if(event.key==='Enter')addMachine('${escapeSingleQ(name)}')"/>
+      <button class="btn btn-admin btn-sm" onclick="addMachine('${escapeSingleQ(name)}')">+ Add</button>
+    </div>
+    <div class="admin-section-actions">
+      <button class="btn btn-red btn-sm" onclick="confirmDeleteSection('${escapeSingleQ(name)}')">🗑 Delete Section</button>
+    </div>
+  `;
+  setupDragDrop(name);
+}
+
+function buildMachineRow(secName, mName, mi) {
+  return `<div class="admin-machine-row" draggable="true" data-mi="${mi}"
+    ondragstart="dragStart(event,${mi})" ondragover="dragOver(event)" ondrop="dragDrop(event,'${escapeSingleQ(secName)}')" ondragend="dragEnd(event)">
+    <span class="drag-handle">⠿</span>
+    <input type="text" value="${mName}" oninput="adminDraft['${escapeSingleQ(secName)}'].machines[${mi}]=this.value" />
+    <button class="del-m" onclick="deleteMachine('${escapeSingleQ(secName)}',${mi})" title="Remove">✕</button>
+  </div>`;
+}
+
+function refreshMachineList(name) {
+  const sec = adminDraft[name];
+  document.getElementById('adminMachineList').innerHTML =
+    sec.machines.map((m, mi) => buildMachineRow(name, m, mi)).join('');
+  setupDragDrop(name);
+  renderAdminSidebar();
+}
+
+function addMachine(name) {
+  const inp = document.getElementById('newMachineName');
+  const val = inp.value.trim();
+  if (!val) { inp.focus(); return; }
+  if (adminDraft[name].machines.includes(val)) { showToast('⚠ Machine already exists', false, true); return; }
+  adminDraft[name].machines.push(val);
+  inp.value = '';
+  refreshMachineList(name);
+  showToast('✅ Machine added');
+}
+
+function deleteMachine(name, mi) {
+  adminDraft[name].machines.splice(mi, 1);
+  refreshMachineList(name);
+}
+
+// FIX: renameSection preserves _originalName (the actual GAS sheet name)
+//      so we always know which sheet to rename, even after multiple renames.
+function renameSection(oldName) {
+  const newName = document.getElementById('adminSecName').value.trim();
+  if (!newName || newName === oldName) return;
+  // Check collision: only block if the existing entry is NOT the same original section
+  if (adminDraft[newName] && adminDraft[newName]._originalName !== adminDraft[oldName]._originalName) {
+    showToast('⚠ Section name already exists', false, true); return;
+  }
+  const entries = Object.entries(adminDraft);
+  const idx = entries.findIndex(([k]) => k === oldName);
+  if (idx === -1) return;
+  const origName = entries[idx][1]._originalName; // KEEP original — never overwrite with oldName
+  entries[idx][0] = newName;
+  entries[idx][1]._originalName = origName;
+  adminDraft = Object.fromEntries(entries);
+  adminActiveSec = newName;
+  renderAdminSidebar();
+  renderAdminContent(newName);
+  showToast('✅ Section renamed (save to apply)');
+}
+
+function addNewSection() {
+  let base = 'New Section', name = base, i = 2;
+  while (adminDraft[name]) { name = base + ' ' + i++; }
+  adminDraft[name] = { machines: [], uom: 'PCS', _originalName: name };
+  adminActiveSec = name;
+  renderAdminSidebar();
+  renderAdminContent(name);
+  setTimeout(() => { const inp = document.getElementById('adminSecName'); inp?.focus(); inp?.select(); }, 50);
+}
+
+// ─── CONFIRM DELETE SECTION ────────────────────────
+function confirmDeleteSection(name) {
+  document.getElementById('confirmTitle').textContent = 'Delete Section';
+  document.getElementById('confirmMsg').textContent =
+    `Are you sure you want to delete the section "${name}" and all its machines? This only removes it from the form — existing data in Google Sheets is NOT deleted.`;
+  document.getElementById('confirmOkBtn').textContent = 'Delete Section';
+  document.getElementById('confirmOkBtn').onclick = () => { doDeleteSection(name); closeConfirm(); };
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.remove('show'); }
+function doDeleteSection(name) {
+  delete adminDraft[name];
+  const keys = Object.keys(adminDraft);
+  adminActiveSec = keys[0] || null;
+  renderAdminSidebar();
+  if (adminActiveSec) renderAdminContent(adminActiveSec);
+  else document.getElementById('adminContent').innerHTML = '<div style="color:var(--muted);font-size:13px;margin-top:40px;text-align:center;">← Select a section to edit</div>';
+  showToast('✅ Section deleted from form');
+}
+
+// ─── DRAG & DROP (machines) ─────────────────────────────
+function setupDragDrop(name) {
+  document.querySelectorAll('#adminMachineList .admin-machine-row').forEach(row => {
+    row.addEventListener('dragstart', e => dragStart(e, +row.dataset.mi));
+    row.addEventListener('dragover',  e => dragOver(e));
+    row.addEventListener('drop',      e => dragDrop(e, name));
+    row.addEventListener('dragend',   e => dragEnd(e));
+  });
+}
+function dragStart(e, mi) {
+  dragSrcIdx = mi;
+  setTimeout(() => e.target.classList.add('dragging'), 0);
+}
+function dragOver(e) {
+  e.preventDefault();
+  document.querySelectorAll('#adminMachineList .admin-machine-row').forEach(r => r.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+function dragDrop(e, name) {
+  e.preventDefault();
+  const targetMi = +e.currentTarget.dataset.mi;
+  if (dragSrcIdx === null || dragSrcIdx === targetMi) return;
+  const machines = adminDraft[name].machines;
+  const [moved] = machines.splice(dragSrcIdx, 1);
+  machines.splice(targetMi, 0, moved);
+  dragSrcIdx = null;
+  refreshMachineList(name);
+}
+function dragEnd(e) {
+  document.querySelectorAll('#adminMachineList .admin-machine-row').forEach(r => r.classList.remove('dragging','drag-over'));
+}
+
+// ─── SAVE ADMIN CHANGES ──────────────────────────────────
+// FIX: Extracts renames map {oldName → newName} and sends to GAS
+//      so GAS can rename sheets instead of creating new ones.
+//      Also remaps baseline data so existing cached data stays valid.
+async function saveAdminChanges() {
+  const saving = document.getElementById('adminSaving');
+  saving.textContent = '⏳ Saving to Google Sheets…';
+
+  const cleaned = {}, renames = {};
+  let warn = false;
+
+  Object.entries(adminDraft).forEach(([currentName, v]) => {
+    const name = currentName.trim();
+    if (!name) return;
+    const machines = (v.machines || []).map(m => m.trim()).filter(Boolean);
+    if (!machines.length) { warn = true; return; }
+    const origName = v._originalName || name;
+    // Build renames map: GAS will rename the old sheet to the new name
+    if (origName !== name) renames[origName] = name;
+    cleaned[name] = { machines, uom: (v.uom || 'PCS').trim() };
+  });
+
+  if (warn) saving.textContent += ' (skipped empty sections)';
+
+  try {
+    // Send sections config + renames to GAS
+    const res = await gasPost({ action: 'saveSectionsConfig', sections: cleaned, renames });
+    if (res?.success) {
+      // ── Remap in-memory baseline data for renamed sections ──
+      Object.entries(renames).forEach(([oldName, newName]) => {
+        if (baseline[oldName]) {
+          baseline[newName] = baseline[oldName];
+          delete baseline[oldName];
+        }
+        // Remap dirtyMap keys too
+        Object.keys(dirtyMap).forEach(key => {
+          const parts = key.split('§');
+          if (parts[0] === oldName) {
+            dirtyMap[newName + '§' + parts.slice(1).join('§')] = dirtyMap[key];
+            delete dirtyMap[key];
+          }
+        });
+      });
+
+      // Remove baseline entries for deleted sections
+      Object.keys(baseline).forEach(k => { if (!cleaned[k]) delete baseline[k]; });
+
+      // Apply changes live
+      SECTIONS = cleaned;
+      SNAMES = Object.keys(SECTIONS);
+      SNAMES.forEach(s => { if (!baseline[s]) baseline[s] = {}; });
+      rebuildMachineMap();
+      buildTabs(); buildPanels();
+      setActive(SNAMES[0]);
+      fetchAll(false);
+      closeAdmin();
+      showToast('✅ Admin changes saved & applied!');
+    } else {
+      saving.textContent = '❌ Error: ' + (res?.error || 'Unknown');
+      showToast('❌ Save failed: ' + (res?.error || 'Unknown'), true);
+    }
+  } catch(e) {
+    saving.textContent = '❌ Network error';
+    showToast('❌ Network error saving admin changes', true);
+  }
+}
+
+// ════════════════════════════════════════
 //  EXPORT MODAL
 // ════════════════════════════════════════
 function openExport() {
@@ -517,38 +1031,30 @@ function openExport() {
 }
 function closeExport() { document.getElementById('exportModal').classList.remove('show'); }
 
-// Fetch all sections+shifts for ONE date in parallel, then move to next date
 async function doExport(fmt) {
   const from = document.getElementById('expDateFrom').value;
   const to   = document.getElementById('expDateTo').value;
   if (!from || !to) { showToast('⚠ Select a date range', false, true); return; }
   if (from > to)    { showToast('⚠ "From" must be ≤ "To"', false, true); return; }
   const isoDates = buildISODateRange(from, to);
-
-  // Flush current-date UI values into baseline
   const curIso = curDate();
+  // Snapshot current UI values into baseline for current date
   SNAMES.forEach(name => {
     const id = sl(name);
     SECTIONS[name].machines.forEach((_, mi) => SHIFTS.forEach((__, si) => {
       const el = inp(id, mi, si); setBase_single(name, curIso, mi, si, el?.value ?? '');
     }));
   });
-
-  // Which dates still need fetching? (any section/shift slot not yet an Array)
   const missingDates = isoDates.filter(iso =>
     SNAMES.some(name => SHIFTS.some((_, si) => !Array.isArray(baseline[name]?.[iso]?.[si])))
   );
-
   if (missingDates.length === 0) { closeExport(); buildExcel(fmt, isoDates); return; }
-
   document.getElementById('expBtns').style.display = 'none';
   document.getElementById('expProgress').classList.add('show');
   setProgressUI(0, missingDates.length);
-
-  // For each missing date: fire ALL section×shift calls in parallel, 2 dates at a time
   const BATCH_SIZE = 2;
   for (let di = 0; di < missingDates.length; di += BATCH_SIZE) {
-    const batch = missingDates.slice(di, di + BATCH_SIZE);   // up to 2 dates
+    const batch = missingDates.slice(di, di + BATCH_SIZE);
     const calls = [];
     batch.forEach(iso => {
       const disp = toDisp(iso);
@@ -562,11 +1068,9 @@ async function doExport(fmt) {
         });
       });
     });
-    await Promise.all(calls);          // wait for ALL calls for this batch to finish
+    await Promise.all(calls);
     setProgressUI(Math.min(di + BATCH_SIZE, missingDates.length), missingDates.length);
   }
-
-  // Every date fully loaded — now build the file
   document.getElementById('expProgress').classList.remove('show');
   document.getElementById('expBtns').style.display = '';
   closeExport();
@@ -576,29 +1080,9 @@ async function doExport(fmt) {
 function setProgressUI(done, total) {
   const pct = total > 0 ? Math.round(done / total * 100) : 0;
   document.getElementById('expProgressMsg').textContent =
-    done >= total
-      ? 'Done! Building Excel…'
-      : `Loading day ${done} of ${total}… please wait`;
+    done >= total ? 'Done! Building Excel…' : `Loading day ${done} of ${total}… please wait`;
   document.getElementById('expProgressBar').style.width = pct + '%';
 }
-
-// ════════════════════════════════════════
-//  PKV FORMAT EXPORT
-// ════════════════════════════════════════
-const PKV_LAYOUT = [
-  {title:'DRYER WISE PRODUCTION',          key:'Dryer',          uom:'CBM',  tr:2,  hr:3,  fr:4,  tlr:10},
-  {title:'CALIBRATOR WISE PRODUCTION',     key:'Calibrator',     uom:'PCS',  tr:13, hr:14, fr:15, tlr:19},
-  {title:'CORE COMPOSER WISE PRODUCTION',  key:'Core Composer',  uom:'SQM',  tr:22, hr:23, fr:24, tlr:35},
-  {title:'FINGER JOINTER WISE PRODUCTION', key:'Finger Jointer', uom:'SQM',  tr:38, hr:39, fr:40, tlr:44},
-  {title:'GLUE SPREADER WISE PRODUCTION',  key:'Glue Spreader',  uom:'SQM',  tr:47, hr:48, fr:49, tlr:60},
-  {title:'HOT PRESS WISE PRODUCTION',      key:'Hot Press',      uom:'NOS',  tr:63, hr:64, fr:65, tlr:71,
-   machines:['HOT PRESS NO-1','HOT PRESS NO-2','HOT PRESS NO-3','HOT PRESS NO-4','HOT PRESS NO-6'],
-   extra:{name:'HOT PRESS NO-5 (R/F)',uom:'NOS',row:73}},
-  {title:'PEELING WISE PRODUCTION',        key:'Peeling',        uom:'CBM',  tr:77, hr:78, fr:79, tlr:85},
-  {title:'PRE PRESS PRODUCTION',           key:'Pre Press',      uom:'NOS',  tr:88, hr:89, fr:90, tlr:98},
-  {title:'RESIN PRODUCTION',               key:'Resin',          uom:'KGS.', tr:101,hr:102,fr:103,tlr:107},
-  {title:'FINISHING PRODUCTION',           key:'Finishing',      uom:'PCS',  tr:110,hr:111,fr:112,tlr:118},
-];
 
 function buildExcel(fmt, isoDates) {
   try {
@@ -608,92 +1092,171 @@ function buildExcel(fmt, isoDates) {
   } catch(e) { showToast('❌ Export error: ' + e.message, true); console.error(e); }
 }
 
+// ════════════════════════════════════════
+//  PKV FORMAT — FULLY DYNAMIC
+//  FIX: No more hardcoded PKV_LAYOUT.
+//       Respects current SNAMES order, uses live SECTIONS
+//       for machine lists, UOM, and section titles.
+//       Accommodates any number of sections/machines without overlap.
+// ════════════════════════════════════════
 function buildPKV2(isoDates) {
-  const BLUE_BG='FF5A9BFB',WHITE='FFFFFFFF',BLACK='FF000000',DARK='FF1A2D42',GREY='FFBFBFBF',LGREY='FFF5F5F5';
-  const BASE_COLS=3, COLS_PER_DATE=5;
-  function colOf(di,off){ return BASE_COLS+di*COLS_PER_DATE+off+1; }
-  function bdr(l){ const clr=l?'FFD0D0D0':GREY,b={style:'thin',color:{rgb:clr}}; return {top:b,bottom:b,left:b,right:b}; }
-  function sHdr(l){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:BLUE_BG}},alignment:{horizontal:'center',vertical:'center'},border:bdr(l)};}
-  function sData(a,l){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:a||'center',vertical:'center'},border:bdr(l)};}
-  function sTitle(){return{font:{bold:true,color:{rgb:DARK},sz:11,name:'Calibri'},fill:{patternType:'none'},alignment:{horizontal:'left',vertical:'center'}};}
-  function sTlr(){return{font:{bold:true,color:{rgb:DARK},sz:11,name:'Calibri'},fill:{patternType:'none'},alignment:{horizontal:'center',vertical:'center'}};}
-  function sDate(){return{font:{sz:11,name:'Calibri',color:{rgb:DARK}},fill:{patternType:'none'},alignment:{horizontal:'center',vertical:'center'}};}
-  function sGap(){return{font:{},fill:{patternType:'solid',fgColor:{rgb:LGREY}},border:{}};}
-  function put(ws,r,c,v,s,t){const addr=XLSX.utils.encode_cell({r:r-1,c:c-1});ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s};}
-  const wb={SheetNames:['All Dates'],Sheets:{}},ws={},merges=[];
-  const colWidths=[{wch:1},{wch:24.44},{wch:8}];
-  isoDates.forEach(()=>colWidths.push({wch:10.33},{wch:8.89},{wch:9.89},{wch:8},{wch:2}));
-  const lastRow=PKV_LAYOUT[PKV_LAYOUT.length-1].tlr+2;
-  const rowHts=[]; for(let r=1;r<=lastRow;r++) rowHts.push({hpt:18});
-  PKV_LAYOUT.forEach(sec=>{
-    const mList=sec.machines||SECTIONS[sec.key]?.machines||[];
-    const{tr,hr,fr,tlr}=sec;
-    put(ws,tr,2,sec.title,sTitle()); rowHts[tr-1]={hpt:16};
-    isoDates.forEach((iso,di)=>{
-      const disp=toDisp(iso),shACol=colOf(di,0);
-      put(ws,tr,shACol,disp,sDate());put(ws,tr,shACol+1,'',sDate());put(ws,tr,shACol+2,'',sDate());put(ws,tr,shACol+3,'',sDate());
-      merges.push({s:{r:tr-1,c:shACol-1},e:{r:tr-1,c:shACol+2}});
+  const BLUE_BG='FF5A9BFB', WHITE='FFFFFFFF', BLACK='FF000000',
+        DARK='FF1A2D42', GREY='FFB8B8B8', LGREY='FFF7F7F7';
+
+  const BASE_COLS = 3, COLS_PER_DATE = 5;
+  function colOf(di, off) { return BASE_COLS + di * COLS_PER_DATE + off + 1; }
+
+  function bdr(light) {
+    const clr = light ? 'FFD8D8D8' : GREY;
+    const b = { style: 'thin', color: { rgb: clr } };
+    return { top: b, bottom: b, left: b, right: b };
+  }
+  function sHdr() {
+    return { font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},
+             fill:{patternType:'solid',fgColor:{rgb:BLUE_BG}},
+             alignment:{horizontal:'center',vertical:'center'}, border:bdr(false) };
+  }
+  function sData(align) {
+    return { font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},
+             fill:{patternType:'solid',fgColor:{rgb:WHITE}},
+             alignment:{horizontal:align||'center',vertical:'center'}, border:bdr(true) };
+  }
+  function sTitle() {
+    return { font:{bold:true,color:{rgb:DARK},sz:11,name:'Calibri'},
+             fill:{patternType:'none'},
+             alignment:{horizontal:'left',vertical:'center'} };
+  }
+  function sTlr() {
+    return { font:{bold:true,color:{rgb:DARK},sz:11,name:'Calibri'},
+             fill:{patternType:'none'},
+             alignment:{horizontal:'center',vertical:'center'} };
+  }
+  function sDate() {
+    return { font:{sz:11,name:'Calibri',color:{rgb:DARK}},
+             fill:{patternType:'none'},
+             alignment:{horizontal:'center',vertical:'center'} };
+  }
+  function sGap() {
+    return { font:{}, fill:{patternType:'solid',fgColor:{rgb:LGREY}}, border:{} };
+  }
+
+  function put(ws, r, c, v, s, t) {
+    const addr = XLSX.utils.encode_cell({r: r-1, c: c-1});
+    ws[addr] = { v: v == null ? '' : v, t: t || (typeof v === 'number' ? 'n' : 's'), s };
+  }
+
+  const wb = { SheetNames: ['All Dates'], Sheets: {} };
+  const ws = {}, merges = [];
+  const rowHtMap = {};
+
+  // Column widths: col A (spacer), col B (machine name), col C (UOM), then date groups
+  const colWidths = [{wch:1},{wch:26},{wch:8}];
+  isoDates.forEach(() => colWidths.push({wch:10.33},{wch:8.89},{wch:9.89},{wch:8},{wch:2}));
+
+  let currentRow = 1;
+
+  // Iterate sections in current SNAMES order (respects admin tab reorder)
+  SNAMES.forEach(name => {
+    const sec = SECTIONS[name];
+    if (!sec) return;
+    const machines = sec.machines;
+    const uom = sec.uom || '';
+
+    // ── Title + date headers row ──
+    const tr = currentRow;
+    rowHtMap[tr] = { hpt: 16 };
+    put(ws, tr, 2, name.toUpperCase() + '', sTitle());
+    isoDates.forEach((iso, di) => {
+      const disp = toDisp(iso), shACol = colOf(di, 0);
+      put(ws, tr, shACol,   disp, sDate());
+      put(ws, tr, shACol+1, '',   sDate());
+      put(ws, tr, shACol+2, '',   sDate());
+      put(ws, tr, shACol+3, '',   sDate());
+      merges.push({ s:{r:tr-1,c:shACol-1}, e:{r:tr-1,c:shACol+2} });
     });
-    put(ws,hr,2,'Machine Name',sHdr());put(ws,hr,3,'UOM',sHdr());rowHts[hr-1]={hpt:20};
-    isoDates.forEach((_,di)=>{
-      const shACol=colOf(di,0);
-      [' Shift 1 ',' Shift 2 ',' Shift 3 ','Total'].forEach((h,i)=>put(ws,hr,shACol+i,h,sHdr()));
-      put(ws,hr,shACol+4,'',sGap());
+
+    // ── Shift header row ──
+    const hr = tr + 1;
+    rowHtMap[hr] = { hpt: 20 };
+    put(ws, hr, 2, 'Machine Name', sHdr());
+    put(ws, hr, 3, 'UOM',          sHdr());
+    isoDates.forEach((_, di) => {
+      const shACol = colOf(di, 0);
+      [' Shift 1 ', ' Shift 2 ', ' Shift 3 ', 'Total'].forEach((h, i) =>
+        put(ws, hr, shACol+i, h, sHdr()));
+      put(ws, hr, shACol+4, '', sGap());
     });
-    mList.forEach((mname,mi)=>{
-      const dr=fr+mi;rowHts[dr-1]={hpt:18};
-      put(ws,dr,2,mname,sData('left'));put(ws,dr,3,sec.uom,sData('center'));
-      isoDates.forEach((iso,di)=>{
-        const allM=SECTIONS[sec.key]?.machines||[],realMi=allM.indexOf(mname);
-        const sa=realMi>=0&&gv(sec.key,iso,0,realMi)!==''?parseFloat(gv(sec.key,iso,0,realMi)):null;
-        const sb=realMi>=0&&gv(sec.key,iso,1,realMi)!==''?parseFloat(gv(sec.key,iso,1,realMi)):null;
-        const sc=realMi>=0&&gv(sec.key,iso,2,realMi)!==''?parseFloat(gv(sec.key,iso,2,realMi)):null;
-        const tot=(sa||0)+(sb||0)+(sc||0),shACol=colOf(di,0);
-        put(ws,dr,shACol,sa!==null?sa:'',sData('center'),sa!==null?'n':'s');
-        put(ws,dr,shACol+1,sb!==null?sb:'',sData('center'),sb!==null?'n':'s');
-        put(ws,dr,shACol+2,sc!==null?sc:'',sData('center'),sc!==null?'n':'s');
-        put(ws,dr,shACol+3,tot,sData('center'),'n');
-        put(ws,dr,shACol+4,'',sGap());
+
+    // ── Machine data rows ──
+    machines.forEach((mname, mi) => {
+      const dr = hr + 1 + mi;
+      rowHtMap[dr] = { hpt: 18 };
+      put(ws, dr, 2, mname, sData('left'));
+      put(ws, dr, 3, uom,   sData('center'));   // live UOM from SECTIONS
+      isoDates.forEach((iso, di) => {
+        const rawA = gv(name, iso, 0, mi), rawB = gv(name, iso, 1, mi), rawC = gv(name, iso, 2, mi);
+        const sa = rawA !== '' ? parseFloat(rawA) : null;
+        const sb = rawB !== '' ? parseFloat(rawB) : null;
+        const sc = rawC !== '' ? parseFloat(rawC) : null;
+        const tot = (sa||0) + (sb||0) + (sc||0);
+        const shACol = colOf(di, 0);
+        put(ws, dr, shACol,   sa!==null?sa:'', sData('center'), sa!==null?'n':'s');
+        put(ws, dr, shACol+1, sb!==null?sb:'', sData('center'), sb!==null?'n':'s');
+        put(ws, dr, shACol+2, sc!==null?sc:'', sData('center'), sc!==null?'n':'s');
+        put(ws, dr, shACol+3, tot,              sData('center'), 'n');
+        put(ws, dr, shACol+4, '',               sGap());
       });
     });
-    rowHts[tlr-1]={hpt:18};put(ws,tlr,2,'',sTlr());put(ws,tlr,3,'TOTAL :-',sTlr());
-    isoDates.forEach((iso,di)=>{
-      let cSa=0,cSb=0,cSc=0;
-      mList.forEach(mn=>{const allM=SECTIONS[sec.key]?.machines||[],rMi=allM.indexOf(mn);
-        cSa+=rMi>=0?(parseFloat(gv(sec.key,iso,0,rMi))||0):0;
-        cSb+=rMi>=0?(parseFloat(gv(sec.key,iso,1,rMi))||0):0;
-        cSc+=rMi>=0?(parseFloat(gv(sec.key,iso,2,rMi))||0):0;
+
+    // ── Section total row ──
+    const tlr = hr + 1 + machines.length;
+    rowHtMap[tlr] = { hpt: 18 };
+    put(ws, tlr, 2, '', sTlr());
+    put(ws, tlr, 3, 'TOTAL :-', sTlr());
+    isoDates.forEach((iso, di) => {
+      let cSa = 0, cSb = 0, cSc = 0;
+      machines.forEach((_, mi) => {
+        cSa += parseFloat(gv(name, iso, 0, mi)) || 0;
+        cSb += parseFloat(gv(name, iso, 1, mi)) || 0;
+        cSc += parseFloat(gv(name, iso, 2, mi)) || 0;
       });
-      const shACol=colOf(di,0);
-      put(ws,tlr,shACol,cSa,sTlr(),'n');put(ws,tlr,shACol+1,cSb,sTlr(),'n');
-      put(ws,tlr,shACol+2,cSc,sTlr(),'n');put(ws,tlr,shACol+3,cSa+cSb+cSc,sTlr(),'n');
-      put(ws,tlr,shACol+4,'',sGap());
+      const shACol = colOf(di, 0);
+      put(ws, tlr, shACol,   cSa,            sTlr(), 'n');
+      put(ws, tlr, shACol+1, cSb,            sTlr(), 'n');
+      put(ws, tlr, shACol+2, cSc,            sTlr(), 'n');
+      put(ws, tlr, shACol+3, cSa+cSb+cSc,   sTlr(), 'n');
+      put(ws, tlr, shACol+4, '',             sGap());
     });
-    if(sec.extra){
-      const em=sec.extra,allM=SECTIONS[sec.key]?.machines||[],mi2=allM.findIndex(m=>m===em.name),er=em.row;
-      rowHts[er-1]={hpt:18};put(ws,er,2,em.name,sData('left'));put(ws,er,3,em.uom,sData('center'));
-      isoDates.forEach((iso,di)=>{
-        const sa2=mi2>=0&&gv(sec.key,iso,0,mi2)!==''?parseFloat(gv(sec.key,iso,0,mi2)):null;
-        const sb2=mi2>=0&&gv(sec.key,iso,1,mi2)!==''?parseFloat(gv(sec.key,iso,1,mi2)):null;
-        const sc2=mi2>=0&&gv(sec.key,iso,2,mi2)!==''?parseFloat(gv(sec.key,iso,2,mi2)):null;
-        const tot2=(sa2||0)+(sb2||0)+(sc2||0),shACol=colOf(di,0);
-        put(ws,er,shACol,sa2!==null?sa2:'',sData('center'),sa2!==null?'n':'s');
-        put(ws,er,shACol+1,sb2!==null?sb2:'',sData('center'),sb2!==null?'n':'s');
-        put(ws,er,shACol+2,sc2!==null?sc2:'',sData('center'),sc2!==null?'n':'s');
-        put(ws,er,shACol+3,tot2,sData('center'),'n');put(ws,er,shACol+4,'',sGap());
-      });
-    }
+
+    // 3-row gap between sections (title row + 2 blank rows)
+    currentRow = tlr + 3;
   });
-  const totalCols=BASE_COLS+isoDates.length*COLS_PER_DATE;
-  ws['!ref']='A1:'+XLSX.utils.encode_col(totalCols-1)+lastRow;
-  ws['!merges']=merges;ws['!cols']=colWidths;ws['!rows']=rowHts;
-  wb.Sheets['All Dates']=ws;
-  const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
-  const fname=from===to?`PKV_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`:`PKV_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
-  XLSX.writeFile(wb,fname,{bookType:'xlsx',cellStyles:true});
+
+  // Build row heights array
+  const lastRow = currentRow - 1;
+  const rowHts = [];
+  for (let r = 1; r <= lastRow; r++) rowHts.push(rowHtMap[r] || { hpt: 18 });
+
+  const totalCols = BASE_COLS + isoDates.length * COLS_PER_DATE;
+  ws['!ref']    = 'A1:' + XLSX.utils.encode_col(totalCols - 1) + lastRow;
+  ws['!merges'] = merges;
+  ws['!cols']   = colWidths;
+  ws['!rows']   = rowHts;
+  wb.Sheets['All Dates'] = ws;
+
+  const from = document.getElementById('expDateFrom').value;
+  const to   = document.getElementById('expDateTo').value;
+  const fname = from === to
+    ? `PKV_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`
+    : `PKV_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
+
+  XLSX.writeFile(wb, fname, { bookType:'xlsx', cellStyles:true });
   showToast(`📥 PKV format exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
+// ════════════════════════════════════════
+//  AJAY FORMAT — uses live MACHINE_SECTION_MAP
+// ════════════════════════════════════════
 function buildAjay(isoDates) {
   const NAVY='FF1A3A5C',STEEL='FF2E6DA4',WHITE='FFFFFFFF',GREY_BG='FFF2F2F2',BLACK='FF000000',BORDER_C='FFB0B0B0';
   function bdr(){const b={style:'thin',color:{rgb:BORDER_C}};return{top:b,bottom:b,left:b,right:b};}
@@ -733,29 +1296,41 @@ function buildAjay(isoDates) {
   showToast(`📥 Ajay sir's format exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
+// ════════════════════════════════════════
+//  SHEETWISE FORMAT — dynamic, includes UOM
+// ════════════════════════════════════════
 function buildSheetwise(isoDates) {
-  const wb=XLSX.utils.book_new();
-  SNAMES.forEach(name=>{
-    const sec=SECTIONS[name],rows=[];
-    const h1=['Date'];isoDates.forEach(d=>h1.push(toDisp(d),'',''));rows.push(h1);
-    const h2=['Shift'];isoDates.forEach(()=>h2.push('Shift 1','Shift 2','Shift 3'));rows.push(h2);
-    rows.push(['Machine',...isoDates.flatMap(()=>['','',''])]);
-    sec.machines.forEach((m,mi)=>{
-      const row=[m];
-      isoDates.forEach(d=>SHIFTS.forEach((_,si)=>{const v=gv(name,d,si,mi);row.push(v!==''?+v:'');}));
+  const wb = XLSX.utils.book_new();
+  // Follows SNAMES order (respects admin tab reorder)
+  SNAMES.forEach(name => {
+    const sec = SECTIONS[name], rows = [];
+    const h1 = ['Date']; isoDates.forEach(d => h1.push(toDisp(d),'',''));
+    rows.push(h1);
+    const h2 = ['Shift']; isoDates.forEach(() => h2.push('Shift 1','Shift 2','Shift 3'));
+    rows.push(h2);
+    // Include current UOM in the machine header cell
+    rows.push([`Machine (${sec.uom})`,...isoDates.flatMap(()=>['','',''])]);
+    sec.machines.forEach((m, mi) => {
+      const row = [m];
+      isoDates.forEach(d => SHIFTS.forEach((_,si) => { const v=gv(name,d,si,mi); row.push(v!==''?+v:''); }));
       rows.push(row);
     });
-    const tr=['TOTAL'];
-    isoDates.forEach(d=>SHIFTS.forEach((_,si)=>{const s=sec.machines.reduce((a,__,mi)=>a+(+gv(name,d,si,mi)||0),0);tr.push(s||'');}));
+    const tr = ['TOTAL'];
+    isoDates.forEach(d => SHIFTS.forEach((_,si) => {
+      const s = sec.machines.reduce((a,__,mi) => a+(+gv(name,d,si,mi)||0), 0);
+      tr.push(s||'');
+    }));
     rows.push(tr);
-    const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!merges']=isoDates.map((_,di)=>({s:{r:0,c:1+di*3},e:{r:0,c:3+di*3}}));
-    ws['!cols']=[{wch:26},...isoDates.flatMap(()=>[{wch:10},{wch:10},{wch:10}])];
-    XLSX.utils.book_append_sheet(wb,ws,name.substring(0,31));
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!merges'] = isoDates.map((_,di) => ({s:{r:0,c:1+di*3},e:{r:0,c:3+di*3}}));
+    ws['!cols'] = [{wch:26},...isoDates.flatMap(()=>[{wch:10},{wch:10},{wch:10}])];
+    XLSX.utils.book_append_sheet(wb, ws, name.substring(0,31));
   });
   const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
-  const fname=from===to?`production_sheetwise_${toDisp(from).replace(/-/g,'_')}.xlsx`:`production_sheetwise_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
-  XLSX.writeFile(wb,fname);
+  const fname=from===to
+    ?`production_sheetwise_${toDisp(from).replace(/-/g,'_')}.xlsx`
+    :`production_sheetwise_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
+  XLSX.writeFile(wb, fname);
   showToast(`📥 Sheet-wise exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
@@ -764,8 +1339,8 @@ function buildSheetwise(isoDates) {
 // ════════════════════════════════════════
 function gv(name,d,si,mi){const v=baseline[name]?.[d]?.[si]?.[mi];return(v!==undefined&&v!==null&&v!=='')?v:'';}
 function getBase(name,mi,si){return baseline[name]?.[curDate()]?.[si]?.[mi]??'';}
-function setBase(name,iso,si,vals){if(!baseline[name][iso])baseline[name][iso]={};baseline[name][iso][si]=Array.isArray(vals)?vals.slice():[];}
-function setBase_single(name,iso,mi,si,val){if(!baseline[name][iso])baseline[name][iso]={};if(!baseline[name][iso][si])baseline[name][iso][si]=[];baseline[name][iso][si][mi]=val;}
+function setBase(name,iso,si,vals){if(!baseline[name])baseline[name]={};if(!baseline[name][iso])baseline[name][iso]={};baseline[name][iso][si]=Array.isArray(vals)?vals.slice():[];}
+function setBase_single(name,iso,mi,si,val){if(!baseline[name])baseline[name]={};if(!baseline[name][iso])baseline[name][iso]={};if(!baseline[name][iso][si])baseline[name][iso][si]=[];baseline[name][iso][si][mi]=val;}
 
 // ════════════════════════════════════════
 //  KEYBOARD NAVIGATION
@@ -795,9 +1370,11 @@ function isoYesterday(){const d=new Date();d.setDate(d.getDate()-1);return local
 function toDisp(iso){const[y,m,d]=iso.split('-');return`${d}-${m}-${y}`;}
 function dk(n,mi,si){return`${n}§${mi}§${si}`;}
 function parseKey(k){const[name,...rest]=k.split('§');return[name,...rest];}
+function escapeSingleQ(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function flashSaved(name,mi,si){const el=inp(sl(name),mi,si);if(!el)return;el.classList.add('saved');setTimeout(()=>el.classList.remove('saved'),900);}
 function refreshDot(name){
   const iso=curDate(),id=sl(name),sec=SECTIONS[name];
+  if(!sec) return;
   const total=SHIFTS.length*sec.machines.length; let filled=0;
   SHIFTS.forEach((_,si)=>sec.machines.forEach((__,mi)=>{
     const v=baseline[name]?.[iso]?.[si]?.[mi];
