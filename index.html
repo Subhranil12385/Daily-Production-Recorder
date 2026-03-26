@@ -62,8 +62,9 @@ input[type="date"]:focus{border-color:var(--accent);}
 .tab{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.4px;padding:9px 12px;cursor:pointer;border-bottom:3px solid transparent;color:var(--muted);text-transform:uppercase;transition:.18s;user-select:none;}
 .tab:hover{color:var(--text);}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-.dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--green);margin-left:4px;vertical-align:middle;opacity:0;transition:.2s;}
-.tab.filled .dot{opacity:1;}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:4px;vertical-align:middle;transition:.2s;opacity:1;background:#b83228;}
+.tab.dot-partial .dot{background:var(--accent);}
+.tab.dot-full .dot{background:var(--green);}
 
 .main{padding:12px;} .section-panel{display:none;} .section-panel.active{display:block;}
 
@@ -801,12 +802,19 @@ function dk(n,mi,si) { return `${n}§${mi}§${si}`; }
 function parseKey(k) { const [name,...rest]=k.split('§'); return [name,...rest]; }
 function flashSaved(name,mi,si){ const el=inp(sl(name),mi,si); if(!el)return; el.classList.add('saved'); setTimeout(()=>el.classList.remove('saved'),900); }
 function refreshDot(name){
-  const iso=curDate();
-  const has=SHIFTS.some((_,si)=>SECTIONS[name].machines.some((__,mi)=>{
-    const v=baseline[name]?.[iso]?.[si]?.[mi]; if(v!==undefined&&v!=='') return true;
-    return (inp(sl(name),mi,si)?.value||'')!=='';
+  const iso=curDate(), id=sl(name), sec=SECTIONS[name];
+  const total=SHIFTS.length*sec.machines.length;
+  let filled=0;
+  SHIFTS.forEach((_,si)=>sec.machines.forEach((__,mi)=>{
+    const v=baseline[name]?.[iso]?.[si]?.[mi];
+    if((v!==undefined&&v!==null&&v!=='')||(inp(id,mi,si)?.value||'')!=='') filled++;
   }));
-  document.getElementById('tab-'+sl(name))?.classList.toggle('filled',has);
+  const tab=document.getElementById('tab-'+id);
+  if(!tab) return;
+  tab.classList.remove('dot-partial','dot-full');
+  if(filled===total) tab.classList.add('dot-full');
+  else if(filled>0)  tab.classList.add('dot-partial');
+  // else: neither class = red dot (default)
 }
 function refreshDot_all(){ SNAMES.forEach(refreshDot); }
 function refreshSaveStatus(msg){
