@@ -32,21 +32,18 @@ body.dark {
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;}
-
 .topbar{background:var(--topbar);border-bottom:3px solid var(--topbar-ac);padding:0 14px;height:50px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:var(--shadow2);}
 .topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;color:#fff;}
 .topbar-title em{color:var(--topbar-ac);font-style:normal;}
 .topbar-r{display:flex;gap:6px;align-items:center;}
 .theme-btn{background:transparent;border:1.5px solid rgba(255,255,255,.22);color:#fff;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:15px;line-height:1;transition:.15s;}
 .theme-btn:hover{background:rgba(255,255,255,.12);}
-
 .btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.4px;padding:7px 13px;border:none;border-radius:6px;cursor:pointer;transition:.14s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
 .btn-accent{background:var(--accent);color:#fff;} .btn-accent:hover{background:var(--accent2);}
 .btn-green{background:var(--green);color:#fff;} .btn-green:hover{background:var(--green2);}
 .btn-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--muted);}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
 .btn:active{transform:scale(.97);} .btn:disabled{opacity:.42;cursor:not-allowed;transform:none;}
-
 .datebar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:var(--shadow);}
 .ctrl-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--accent);text-transform:uppercase;}
 input[type="date"]{background:var(--bg);border:1.5px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:'Barlow',sans-serif;font-size:14px;outline:none;-webkit-appearance:none;cursor:pointer;}
@@ -55,7 +52,6 @@ input[type="date"]:focus{border-color:var(--accent);}
 .chip-load{background:rgba(201,122,8,.12);color:var(--accent);}
 .chip-ok{background:rgba(26,122,66,.12);color:var(--green);}
 .chip-err{background:rgba(184,50,40,.12);color:var(--red);}
-
 .tabs-wrap{background:var(--tab-bg);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:50px;z-index:150;}
 .tabs-wrap::-webkit-scrollbar{display:none;}
 .tabs{display:flex;padding:0 8px;min-width:max-content;}
@@ -65,9 +61,7 @@ input[type="date"]:focus{border-color:var(--accent);}
 .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:4px;vertical-align:middle;transition:.2s;opacity:1;background:#b83228;}
 .tab.dot-partial .dot{background:var(--accent);}
 .tab.dot-full .dot{background:var(--green);}
-
 .main{padding:12px;} .section-panel{display:none;} .section-panel.active{display:block;}
-
 .ss-block{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
 .ss-row{display:grid;align-items:stretch;border-bottom:1px solid var(--border);}
 .ss-row:last-child{border-bottom:none;}
@@ -82,7 +76,7 @@ input[type="date"]:focus{border-color:var(--accent);}
 .hcell.tot{color:var(--accent);} .hcell.uom{color:var(--muted);font-size:10px;}
 .mcell{padding:0 8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;color:var(--text);border-right:1px solid var(--border);display:flex;align-items:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-height:34px;}
 .ni{width:100%;min-height:34px;height:100%;background:transparent;border:none;border-right:1px solid var(--border);color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;text-align:right;padding:0 7px;outline:none;-moz-appearance:textfield;appearance:textfield;transition:background .12s;}
-.ni::-webkit-outer-spin-button,.ni::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.ni::-webkit-outer-spin-button,.ni::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;display:none;}
 .ni.sha{color:var(--sha-col);} .ni.shb{color:var(--shb-col);} .ni.shc{color:var(--shc-col);}
 .ni:focus{background:rgba(201,122,8,.07);}
 .ni.sha:focus{background:var(--sha-bg);} .ni.shb:focus{background:var(--shb-bg);} .ni.shc:focus{background:var(--shc-bg);}
@@ -96,11 +90,9 @@ input[type="date"]:focus{border-color:var(--accent);}
 .sec-title{padding:9px 13px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-bottom:1px solid var(--border);}
 .sec-title h2{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;color:var(--accent);text-transform:uppercase;}
 .uom-badge{background:var(--bg);border:1px solid var(--blue);color:var(--blue);padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
-
 .save-bar{position:sticky;bottom:0;z-index:100;background:var(--surface);border-top:1px solid var(--border);padding:8px 14px;display:flex;gap:7px;align-items:center;justify-content:flex-end;box-shadow:0 -2px 12px rgba(0,0,0,.08);}
 body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 #saveStatus{flex:1;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;}
 .modal-bg.show{display:flex;}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;width:420px;max-width:95vw;box-shadow:var(--shadow2);}
@@ -109,7 +101,6 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 .exp-opt:hover{border-color:var(--accent);background:rgba(201,122,8,.04);}
 .exp-opt h4{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;}
 .exp-opt p{font-size:11px;color:var(--muted);}
-
 .date-range-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;}
 .date-range-box label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--accent);text-transform:uppercase;display:block;margin-bottom:6px;}
 .date-range-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
@@ -119,13 +110,11 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 .range-preset{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);cursor:pointer;background:transparent;transition:.14s;}
 .range-preset:hover{border-color:var(--accent);color:var(--accent);}
 .range-preset.act{background:var(--accent);color:#fff;border-color:var(--accent);}
-
 .exp-progress{display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px;text-align:center;}
 .exp-progress.show{display:block;}
 .exp-progress p{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;}
 .progress-bar-wrap{background:var(--border);border-radius:20px;height:6px;overflow:hidden;}
 .progress-bar-fill{background:var(--accent);height:100%;border-radius:20px;transition:width .25s;}
-
 #toast{position:fixed;bottom:64px;right:14px;background:var(--topbar);border-left:4px solid var(--green);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:.24s;z-index:999;pointer-events:none;min-width:180px;box-shadow:var(--shadow2);}
 #toast.show{opacity:1;transform:translateY(0);}
 #toast.err{border-left-color:var(--red);}
@@ -205,28 +194,24 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 
 <script>
 // ════════════════════════════════════════
-//  APPS SCRIPT ENDPOINT  ← hardcoded here
+//  APPS SCRIPT ENDPOINT — update this URL after each new deployment
 // ════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmofU2PWzFFCG1kab1VGaR0uWCsL-qH8sOYGnQnDlyKa3n0dRCY7IjozUKLSkNFqT1/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwPoQIVaVRzRNX_MKpRXPLb4SM5PgP0WFrxRqySLy5eYKfxF5jeXx4lqP0RD8EtzRiJ/exec';
 
-// ── Call Apps Script via fetch (replaces google.script.run)
-// Apps Script GET: ?action=getShiftData&section=X&date=DD-MM-YYYY&shift=Shift+A
-// Apps Script POST: JSON body { action:'submitShiftData', ...payload }
 function gasGet(params) {
-  const qs = new URLSearchParams({...params}).toString();
-  return fetch(`${GAS_URL}?${qs}`)
-    .then(r => r.json());
+  const qs = new URLSearchParams(params).toString();
+  return fetch(`${GAS_URL}?${qs}`).then(r => r.json());
 }
 function gasPost(body) {
   return fetch(GAS_URL, {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'text/plain' } // text/plain avoids CORS preflight
+    headers: { 'Content-Type': 'text/plain' }
   }).then(r => r.json());
 }
 
 // ════════════════════════════════════════
-//  CONFIG
+//  CONFIG — Shift 1/2/3 only, no A/B/C
 // ════════════════════════════════════════
 const SECTIONS = {
   'Dryer':          { machines:['Dryer 1','Dryer 2','Dryer 3','Dryer 4','Dryer 5'], uom:'CBM' },
@@ -240,27 +225,23 @@ const SECTIONS = {
   'Resin':          { machines:['RESIN KETTLE-1','RESIN KETTLE-2','RESIN KETTLE-3'], uom:'KGS.' },
   'Finishing':      { machines:['STEEL WOOL MACHINE','DDSAW/WBS-1&2/SQUEZER','GRECON','STAMPING MACHINE-1','STAMPING MACHINE-2'], uom:'PCS' }
 };
-const SNAMES = Object.keys(SECTIONS);
-const SHIFTS  = ['Shift A','Shift B','Shift C'];
-const SH_CLS  = ['sha','shb','shc'];
-const SH_VCLS = ['sha-v','shb-v','shc-v'];
+const SNAMES  = Object.keys(SECTIONS);
+const SHIFTS  = ['Shift 1', 'Shift 2', 'Shift 3'];   // ← only 1/2/3, never A/B/C
+const SH_CLS  = ['sha', 'shb', 'shc'];
+const SH_VCLS = ['sha-v', 'shb-v', 'shc-v'];
 
 const AJAY_EXTRA_MACHINES = ['Cooling tower'];
-
 const MACHINE_SECTION_MAP = {};
 SNAMES.forEach(name => {
   SECTIONS[name].machines.forEach((m, mi) => {
     MACHINE_SECTION_MAP[m] = { section: name, machineIdx: mi };
   });
 });
-
 function getAjayMachineList() {
   const all = [];
   SNAMES.forEach(name => SECTIONS[name].machines.forEach(m => all.push(m)));
   AJAY_EXTRA_MACHINES.forEach(m => all.push(m));
-  return all.slice().sort((a, b) =>
-    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
-  );
+  return all.slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 }
 
 const baseline = {};
@@ -274,10 +255,10 @@ let fetchToken = 0;
 // ════════════════════════════════════════
 function init() {
   applyTheme();
-  const today = isoToday();
-  document.getElementById('entryDate').value   = today;
-  document.getElementById('expDateFrom').value = today;
-  document.getElementById('expDateTo').value   = today;
+  const yesterday = isoYesterday();
+  document.getElementById('entryDate').value   = yesterday;
+  document.getElementById('expDateFrom').value = yesterday;
+  document.getElementById('expDateTo').value   = yesterday;
   buildTabs(); buildPanels(); setActive(SNAMES[0]); fetchAll(false);
 }
 function applyTheme() {
@@ -298,18 +279,14 @@ function setPreset(p, btn) {
   document.querySelectorAll('.range-preset').forEach(b => b.classList.remove('act'));
   btn.classList.add('act');
   const today = isoToday();
-  const d = new Date(today + 'T00:00:00');
   let from = today, to = today;
-  if (p === 'yesterday') {
-    const y = new Date(d); y.setDate(y.getDate()-1); from = to = y.toISOString().slice(0,10);
-  } else if (p === 'week') {
-    const mon = new Date(d); mon.setDate(d.getDate() - (d.getDay()===0?6:d.getDay()-1));
-    from = mon.toISOString().slice(0,10); to = today;
-  } else if (p === 'month') {
-    from = today.slice(0,7)+'-01'; to = today;
-  } else if (p === 'all') {
-    const all = getAllStoredDates(); if (all.length) { from = all[0]; to = all[all.length-1]; }
-  }
+  if (p === 'yesterday') { from = to = isoYesterday(); }
+  else if (p === 'week') {
+    const d2 = new Date(today + 'T00:00:00');
+    const mon = new Date(d2); mon.setDate(d2.getDate() - (d2.getDay()===0?6:d2.getDay()-1));
+    from = localISO(mon); to = today;
+  } else if (p === 'month') { from = today.slice(0,7)+'-01'; to = today; }
+  else if (p === 'all') { const all = getAllStoredDates(); if (all.length) { from = all[0]; to = all[all.length-1]; } }
   document.getElementById('expDateFrom').value = from;
   document.getElementById('expDateTo').value   = to;
 }
@@ -321,8 +298,7 @@ function getAllStoredDates() {
 }
 function buildISODateRange(from, to) {
   const out = []; let d = new Date(from + 'T00:00:00');
-  const end = new Date(to + 'T00:00:00');
-  while (d <= end) { out.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
+  while (localISO(d) <= to) { out.push(localISO(d)); d.setDate(d.getDate()+1); }
   return out;
 }
 
@@ -336,8 +312,8 @@ function buildTabs() {
 }
 function setActive(name) {
   active = name;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-'+sl(name))?.classList.add('active');
   document.getElementById('panel-'+sl(name))?.classList.add('active');
   document.getElementById('tab-'+sl(name))?.scrollIntoView({behavior:'smooth',inline:'nearest',block:'nearest'});
@@ -345,7 +321,7 @@ function setActive(name) {
 function buildPanels() { document.getElementById('panels').innerHTML = SNAMES.map(buildPanel).join(''); }
 function buildPanel(name) {
   const sec = SECTIONS[name], id = sl(name);
-  const mw = Math.min(180, Math.max(110, Math.max(...sec.machines.map(m=>m.length))*7));
+  const mw = Math.min(180, Math.max(110, Math.max(...sec.machines.map(m => m.length)) * 7));
   const gc = `${mw}px repeat(3,1fr) 58px 40px`;
   return `
 <div class="section-panel" id="panel-${id}">
@@ -359,23 +335,29 @@ function buildPanel(name) {
       </div>
       <div class="ss-row hdr-row" style="grid-template-columns:${gc}">
         <div class="hcell lbl" style="min-width:${mw}px">Machine</div>
-        <div class="hcell sha">Shift A</div><div class="hcell shb">Shift B</div>
-        <div class="hcell shc">Shift C</div><div class="hcell tot"></div><div class="hcell uom"></div>
+        <div class="hcell sha">Shift 1</div>
+        <div class="hcell shb">Shift 2</div>
+        <div class="hcell shc">Shift 3</div>
+        <div class="hcell tot"></div><div class="hcell uom"></div>
       </div>
     </div>
     <div>
-      ${sec.machines.map((m,mi)=>`
+      ${sec.machines.map((m, mi) => `
       <div class="ss-row" style="grid-template-columns:${gc}">
         <div class="mcell" style="min-width:${mw}px" title="${m}">${m}</div>
-        ${SHIFTS.map((_,si)=>`<input class="ni ${SH_CLS[si]}" type="number" min="0" step="any" id="i-${id}-${mi}-${si}" oninput="onInp('${id}','${name}',${mi},${si})" onblur="onBlur('${name}',${mi},${si})"/>`).join('')}
+        ${SHIFTS.map((_, si) => `<input class="ni ${SH_CLS[si]}" type="number" min="0" step="any"
+          id="i-${id}-${mi}-${si}"
+          oninput="onInp('${id}','${name}',${mi},${si})"
+          onblur="onBlur('${name}',${mi},${si})"
+          onkeydown="if(event.key==='ArrowUp'||event.key==='ArrowDown')event.preventDefault()"/>`).join('')}
         <div class="vcell tot" id="rt-${id}-${mi}"></div>
         <div class="vcell uom-label">${sec.uom}</div>
       </div>`).join('')}
       <div class="ss-row tot-row" style="grid-template-columns:${gc}">
         <div class="mcell" style="min-width:${mw}px">TOTAL</div>
-        ${SHIFTS.map((_,si)=>`<div class="vcell ${SH_VCLS[si]}" id="ct-${id}-${si}"></div>`).join('')}
+        ${SHIFTS.map((_, si) => `<div class="vcell ${SH_VCLS[si]}" id="ct-${id}-${si}"></div>`).join('')}
         <div class="vcell tot" id="gt-${id}"></div>
-        <div class="vcell uom-label"></div>
+        <div class="vcell uom-label">${sec.uom}</div>
       </div>
     </div>
   </div>
@@ -385,131 +367,139 @@ function buildPanel(name) {
 // ════════════════════════════════════════
 //  TOTALS
 // ════════════════════════════════════════
-function onInp(id,name,mi,si) {
-  calcRow(id,name,mi); calcCols(id,name);
-  const key=dk(name,mi,si), el=document.getElementById(`i-${id}-${mi}-${si}`), cur=el?.value??'';
-  const base=getBase(name,mi,si);
-  if (String(cur)!==String(base===null||base===undefined?'':base)) { dirtyMap[key]=cur; el?.classList.add('dirty'); }
+function onInp(id, name, mi, si) {
+  calcRow(id, name, mi); calcCols(id, name);
+  const key = dk(name, mi, si), el = document.getElementById(`i-${id}-${mi}-${si}`), cur = el?.value ?? '';
+  const base = getBase(name, mi, si);
+  if (String(cur) !== String(base === null || base === undefined ? '' : base)) { dirtyMap[key] = cur; el?.classList.add('dirty'); }
   else { delete dirtyMap[key]; el?.classList.remove('dirty'); }
   refreshSaveStatus();
 }
-function onBlur(name,mi,si) { if (dk(name,mi,si) in dirtyMap) smartSave(); }
-function calcRow(id,name,mi) {
-  let s=0; SHIFTS.forEach((_,si)=>{s+=+inp(id,mi,si)?.value||0;});
-  const el=document.getElementById(`rt-${id}-${mi}`); if(el) el.textContent=s>0?s:'';
+function onBlur(name, mi, si) { if (dk(name, mi, si) in dirtyMap) smartSave(); }
+function calcRow(id, name, mi) {
+  let s = 0; SHIFTS.forEach((_, si) => { s += +inp(id, mi, si)?.value || 0; });
+  s = Math.round(s * 100) / 100;
+  const el = document.getElementById(`rt-${id}-${mi}`); if (el) el.textContent = s > 0 ? s : '';
 }
-function calcCols(id,name) {
-  let grand=0;
-  SHIFTS.forEach((_,si)=>{
-    let cs=0; SECTIONS[name].machines.forEach((__,mi)=>{cs+=+inp(id,mi,si)?.value||0;});
-    const el=document.getElementById(`ct-${id}-${si}`); if(el) el.textContent=cs>0?cs:''; grand+=cs;
+function calcCols(id, name) {
+  let grand = 0;
+  SHIFTS.forEach((_, si) => {
+    let cs = 0; SECTIONS[name].machines.forEach((__, mi) => { cs += +inp(id, mi, si)?.value || 0; });
+    cs = Math.round(cs * 100) / 100;
+    const el = document.getElementById(`ct-${id}-${si}`); if (el) el.textContent = cs > 0 ? cs : ''; grand += cs;
   });
-  const ge=document.getElementById(`gt-${id}`); if(ge) ge.textContent=grand>0?grand:'';
+  grand = Math.round(grand * 100) / 100;
+  const ge = document.getElementById(`gt-${id}`); if (ge) ge.textContent = grand > 0 ? grand : '';
 }
-function recalcAll(name) { const id=sl(name); SECTIONS[name].machines.forEach((_,mi)=>calcRow(id,name,mi)); calcCols(id,name); }
-function inp(id,mi,si) { return document.getElementById(`i-${id}-${mi}-${si}`); }
+function recalcAll(name) { const id = sl(name); SECTIONS[name].machines.forEach((_, mi) => calcRow(id, name, mi)); calcCols(id, name); }
+function inp(id, mi, si) { return document.getElementById(`i-${id}-${mi}-${si}`); }
 
 // ════════════════════════════════════════
-//  FETCH / SAVE  (using fetch() → GAS_URL)
+//  FETCH / SAVE
 // ════════════════════════════════════════
-function onDateChange() { Object.keys(dirtyMap).forEach(k=>delete dirtyMap[k]); refreshSaveStatus(); fetchAll(false); }
+function onDateChange() { Object.keys(dirtyMap).forEach(k => delete dirtyMap[k]); refreshSaveStatus(); fetchAll(false); }
 
 function fetchAll(manual) {
-  const iso=curDate(), disp=toDisp(iso), token=++fetchToken;
-  setChip('load','⏳ Loading…'); setBtnState('load',true);
-  SNAMES.forEach(name=>{
-    const id=sl(name);
-    const dhEl=document.getElementById(`dh-${id}`); if(dhEl) dhEl.textContent=disp;
-    SECTIONS[name].machines.forEach((_,mi)=>SHIFTS.forEach((__,si)=>{
-      const el=inp(id,mi,si); if(el){el.value='';el.classList.remove('dirty','saved');}
+  const iso = curDate(), disp = toDisp(iso), token = ++fetchToken;
+  setChip('load', '⏳ Loading…'); setBtnState('load', true);
+  SNAMES.forEach(name => {
+    const id = sl(name);
+    const dhEl = document.getElementById(`dh-${id}`); if (dhEl) dhEl.textContent = disp;
+    SECTIONS[name].machines.forEach((_, mi) => SHIFTS.forEach((__, si) => {
+      const el = inp(id, mi, si); if (el) { el.value = ''; el.classList.remove('dirty', 'saved'); }
     }));
     recalcAll(name); refreshDot(name);
   });
 
-  let pending=SNAMES.length*SHIFTS.length; const errors=[];
-  SNAMES.forEach(name=>{
-    SHIFTS.forEach((sh,si)=>{
-      gasGet({ action:'getShiftData', section:name, date:disp, shift:sh })
-        .then(res=>{
-          if(token!==fetchToken) return;
-          applyFetched(name,si,res,iso); pending--;
-          if(pending<=0){
-            if(!errors.length){setChip('ok','✓ Loaded'); if(manual)showToast('✅ Data loaded');}
-            else{setChip('err','⚠ Partial load'); showToast('⚠ Some data failed — press ↺ Load',false,true);}
-            setBtnState('load',false);
+  let pending = SNAMES.length * SHIFTS.length; const errors = [];
+  SNAMES.forEach(name => {
+    SHIFTS.forEach((sh, si) => {
+      // Send 'Shift 1/2/3' — the GAS script now understands only these
+      gasGet({ action: 'getShiftData', section: name, date: disp, shift: sh })
+        .then(res => {
+          if (token !== fetchToken) return;
+          applyFetched(name, si, res, iso); pending--;
+          if (pending <= 0) {
+            if (!errors.length) { setChip('ok', '✓ Loaded'); if (manual) showToast('✅ Data loaded'); }
+            else { setChip('err', '⚠ Partial load'); showToast('⚠ Some data failed — press ↺ Load', false, true); }
+            setBtnState('load', false);
           }
         })
-        .catch(err=>{
-          if(token!==fetchToken) return;
+        .catch(err => {
+          if (token !== fetchToken) return;
           errors.push(err); pending--;
-          if(pending<=0){setChip('err','⚠ Load error');setBtnState('load',false);showToast('⚠ Load failed — check connection',false,true);}
+          if (pending <= 0) { setChip('err', '⚠ Load error'); setBtnState('load', false); showToast('⚠ Load failed — check connection', false, true); }
         });
     });
   });
 }
 
-function applyFetched(name,si,res,iso) {
-  if(!res?.values?.length) return;
-  setBase(name,iso,si,res.values);
-  if(iso!==curDate()) return;
-  const id=sl(name);
-  res.values.forEach((v,mi)=>{if(v===''||v===null||v===undefined)return; const el=inp(id,mi,si); if(el)el.value=v;});
+function applyFetched(name, si, res, iso) {
+  // Always mark this slot as fetched (even if empty) so the export
+  // missing-check knows not to re-fetch it and export fires with correct data.
+  const values = (res?.values?.length) ? res.values : [];
+  setBase(name, iso, si, values);
+  if (iso !== curDate()) return;
+  if (!values.length) return;
+  const id = sl(name);
+  values.forEach((v, mi) => { if (v === '' || v === null || v === undefined) return; const el = inp(id, mi, si); if (el) el.value = v; });
   recalcAll(name); refreshDot(name);
 }
 
 function smartSave() {
-  const iso=curDate(), disp=toDisp(iso);
-  const groups={};
-  Object.keys(dirtyMap).forEach(k=>{
-    const [name,mi,si]=parseKey(k); const gk=`${name}§${si}`;
-    if(!groups[gk]) groups[gk]={name,si:+si,cells:{}};
-    groups[gk].cells[+mi]=dirtyMap[k];
+  const iso = curDate(), disp = toDisp(iso);
+  const groups = {};
+  Object.keys(dirtyMap).forEach(k => {
+    const [name, mi, si] = parseKey(k); const gk = `${name}§${si}`;
+    if (!groups[gk]) groups[gk] = { name, si: +si, cells: {} };
+    groups[gk].cells[+mi] = dirtyMap[k];
   });
-  const gkeys=Object.keys(groups); if(!gkeys.length) return;
-  setBtnState('save',true); refreshSaveStatus('Saving…');
-  let pending=gkeys.length;
-  gkeys.forEach(gk=>{
-    const {name,si,cells}=groups[gk], sh=SHIFTS[si];
-    const machines=SECTIONS[name].machines.map((_,mi)=>mi in cells?(cells[mi]!==''?+cells[mi]:''):null);
-    const payload={action:'submitShiftData',date:disp,shift:sh,section:name,machines,sparse:true};
+  const gkeys = Object.keys(groups); if (!gkeys.length) return;
+  setBtnState('save', true); refreshSaveStatus('Saving…');
+  let pending = gkeys.length;
+  gkeys.forEach(gk => {
+    const { name, si, cells } = groups[gk];
+    const sh = SHIFTS[si];   // 'Shift 1', 'Shift 2', or 'Shift 3'
+    const machines = SECTIONS[name].machines.map((_, mi) => mi in cells ? (cells[mi] !== '' ? +cells[mi] : '') : null);
+    const payload = { action: 'submitShiftData', date: disp, shift: sh, section: name, machines, sparse: true };
     sendWithRetry(payload,
-      ()=>{
-        Object.keys(cells).forEach(mi=>{
-          const key=dk(name,+mi,si); setBase_single(name,iso,+mi,si,cells[mi]); delete dirtyMap[key];
-          const el=inp(sl(name),+mi,si); el?.classList.remove('dirty'); flashSaved(name,+mi,si);
+      () => {
+        Object.keys(cells).forEach(mi => {
+          const key = dk(name, +mi, si); setBase_single(name, iso, +mi, si, cells[mi]); delete dirtyMap[key];
+          const el = inp(sl(name), +mi, si); el?.classList.remove('dirty'); flashSaved(name, +mi, si);
         });
-        pending--; if(pending<=0){setBtnState('save',false);refreshDot_all();refreshSaveStatus();showToast('✅ Saved');}
+        pending--; if (pending <= 0) { setBtnState('save', false); refreshDot_all(); refreshSaveStatus(); showToast('✅ Saved'); }
       },
-      errMsg=>{
-        pending--; if(pending<=0) setBtnState('save',false);
-        showToast('❌ Save failed: '+errMsg,true); refreshSaveStatus('Save error – retry');
+      errMsg => {
+        pending--; if (pending <= 0) setBtnState('save', false);
+        showToast('❌ Save failed: ' + errMsg, true); refreshSaveStatus('Save error – retry');
       }
     );
   });
 }
 
 function saveAll() {
-  const iso=curDate();
-  SNAMES.forEach(name=>{
-    const id=sl(name);
-    SECTIONS[name].machines.forEach((_,mi)=>SHIFTS.forEach((__,si)=>{
-      const el=inp(id,mi,si); if(!el) return;
-      const cur=el.value, base=getBase(name,mi,si);
-      if(String(cur)!==String(base===null||base===undefined?'':base)){dirtyMap[dk(name,mi,si)]=cur;el.classList.add('dirty');}
+  const iso = curDate();
+  SNAMES.forEach(name => {
+    const id = sl(name);
+    SECTIONS[name].machines.forEach((_, mi) => SHIFTS.forEach((__, si) => {
+      const el = inp(id, mi, si); if (!el) return;
+      const cur = el.value, base = getBase(name, mi, si);
+      if (String(cur) !== String(base === null || base === undefined ? '' : base)) { dirtyMap[dk(name, mi, si)] = cur; el.classList.add('dirty'); }
     }));
   }); smartSave();
 }
 
-function sendWithRetry(payload,onOk,onFail,attempt=1) {
+function sendWithRetry(payload, onOk, onFail, attempt = 1) {
   gasPost(payload)
-    .then(r=>{
-      if(r?.success) onOk();
-      else if(attempt<2) setTimeout(()=>sendWithRetry(payload,onOk,onFail,2),1800);
-      else onFail(r?.error||'Unknown error');
+    .then(r => {
+      if (r?.success) onOk();
+      else if (attempt < 2) setTimeout(() => sendWithRetry(payload, onOk, onFail, 2), 1800);
+      else onFail(r?.error || 'Unknown error');
     })
-    .catch(err=>{
-      if(attempt<2) setTimeout(()=>sendWithRetry(payload,onOk,onFail,2),1800);
-      else onFail(err?.message||String(err));
+    .catch(err => {
+      if (attempt < 2) setTimeout(() => sendWithRetry(payload, onOk, onFail, 2), 1800);
+      else onFail(err?.message || String(err));
     });
 }
 
@@ -517,80 +507,83 @@ function sendWithRetry(payload,onOk,onFail,attempt=1) {
 //  EXPORT MODAL
 // ════════════════════════════════════════
 function openExport() {
-  const iso=curDate();
-  document.getElementById('expDateFrom').value=iso;
-  document.getElementById('expDateTo').value=iso;
-  document.querySelectorAll('.range-preset').forEach(b=>b.classList.remove('act'));
+  const yesterday = isoYesterday();
+  document.getElementById('expDateFrom').value = yesterday;
+  document.getElementById('expDateTo').value   = yesterday;
+  document.querySelectorAll('.range-preset').forEach(b => { b.classList.toggle('act', b.textContent.trim() === 'Yesterday'); });
   document.getElementById('expProgress').classList.remove('show');
-  document.getElementById('expBtns').style.display='';
+  document.getElementById('expBtns').style.display = '';
   document.getElementById('exportModal').classList.add('show');
 }
 function closeExport() { document.getElementById('exportModal').classList.remove('show'); }
 
-function doExport(fmt) {
-  const from=document.getElementById('expDateFrom').value;
-  const to=document.getElementById('expDateTo').value;
-  if(!from||!to){showToast('⚠ Select a date range',false,true);return;}
-  if(from>to){showToast('⚠ "From" must be ≤ "To"',false,true);return;}
+// Fetch all sections+shifts for ONE date in parallel, then move to next date
+async function doExport(fmt) {
+  const from = document.getElementById('expDateFrom').value;
+  const to   = document.getElementById('expDateTo').value;
+  if (!from || !to) { showToast('⚠ Select a date range', false, true); return; }
+  if (from > to)    { showToast('⚠ "From" must be ≤ "To"', false, true); return; }
+  const isoDates = buildISODateRange(from, to);
 
-  const isoDates=buildISODateRange(from,to);
-
-  // Snapshot current screen into baseline
-  const curIso=curDate();
-  SNAMES.forEach(name=>{
-    const id=sl(name);
-    SECTIONS[name].machines.forEach((_,mi)=>SHIFTS.forEach((__,si)=>{
-      const el=inp(id,mi,si); setBase_single(name,curIso,mi,si,el?.value??'');
+  // Flush current-date UI values into baseline
+  const curIso = curDate();
+  SNAMES.forEach(name => {
+    const id = sl(name);
+    SECTIONS[name].machines.forEach((_, mi) => SHIFTS.forEach((__, si) => {
+      const el = inp(id, mi, si); setBase_single(name, curIso, mi, si, el?.value ?? '');
     }));
   });
 
-  const missing=isoDates.filter(d=>
-    SNAMES.some(name=>SHIFTS.some((_,si)=>baseline[name]?.[d]?.[si]===undefined))
+  // Which dates still need fetching? (any section/shift slot not yet an Array)
+  const missingDates = isoDates.filter(iso =>
+    SNAMES.some(name => SHIFTS.some((_, si) => !Array.isArray(baseline[name]?.[iso]?.[si])))
   );
 
-  if(missing.length===0){
-    closeExport(); buildExcel(fmt,isoDates); return;
-  }
+  if (missingDates.length === 0) { closeExport(); buildExcel(fmt, isoDates); return; }
 
-  document.getElementById('expBtns').style.display='none';
+  document.getElementById('expBtns').style.display = 'none';
   document.getElementById('expProgress').classList.add('show');
-  setProgressUI(0,1);
+  setProgressUI(0, missingDates.length);
 
-  const total=missing.length*SNAMES.length*SHIFTS.length;
-  let done=0;
-
-  const tick=()=>{
-    done++;
-    setProgressUI(done,total);
-    if(done>=total){
-      document.getElementById('expProgress').classList.remove('show');
-      document.getElementById('expBtns').style.display='';
-      closeExport();
-      buildExcel(fmt,isoDates);
-    }
-  };
-
-  missing.forEach(iso=>{
-    const disp=toDisp(iso);
-    SNAMES.forEach(name=>{
-      SHIFTS.forEach((sh,si)=>{
-        gasGet({ action:'getShiftData', section:name, date:disp, shift:sh })
-          .then(res=>{ applyFetched(name,si,res,iso); tick(); })
-          .catch(()=>{ tick(); });
+  // For each missing date: fire ALL section×shift calls in parallel, 2 dates at a time
+  const BATCH_SIZE = 2;
+  for (let di = 0; di < missingDates.length; di += BATCH_SIZE) {
+    const batch = missingDates.slice(di, di + BATCH_SIZE);   // up to 2 dates
+    const calls = [];
+    batch.forEach(iso => {
+      const disp = toDisp(iso);
+      SNAMES.forEach(name => {
+        SHIFTS.forEach((sh, si) => {
+          calls.push(
+            gasGet({ action: 'getShiftData', section: name, date: disp, shift: sh })
+              .then(res => applyFetched(name, si, res, iso))
+              .catch(()  => applyFetched(name, si, null, iso))
+          );
+        });
       });
     });
-  });
+    await Promise.all(calls);          // wait for ALL calls for this batch to finish
+    setProgressUI(Math.min(di + BATCH_SIZE, missingDates.length), missingDates.length);
+  }
+
+  // Every date fully loaded — now build the file
+  document.getElementById('expProgress').classList.remove('show');
+  document.getElementById('expBtns').style.display = '';
+  closeExport();
+  buildExcel(fmt, isoDates);
 }
 
-function setProgressUI(done,total) {
-  const pct=total>0?Math.round(done/total*100):0;
-  document.getElementById('expProgressMsg').textContent=
-    done>=total ? 'Done! Building Excel…' : `Fetching data from Sheets… ${pct}%`;
-  document.getElementById('expProgressBar').style.width=pct+'%';
+function setProgressUI(done, total) {
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('expProgressMsg').textContent =
+    done >= total
+      ? 'Done! Building Excel…'
+      : `Loading day ${done} of ${total}… please wait`;
+  document.getElementById('expProgressBar').style.width = pct + '%';
 }
 
 // ════════════════════════════════════════
-//  PKV SIR'S FORMAT (PKV2) EXPORT
+//  PKV FORMAT EXPORT
 // ════════════════════════════════════════
 const PKV_LAYOUT = [
   {title:'DRYER WISE PRODUCTION',          key:'Dryer',          uom:'CBM',  tr:2,  hr:3,  fr:4,  tlr:10},
@@ -609,55 +602,53 @@ const PKV_LAYOUT = [
 
 function buildExcel(fmt, isoDates) {
   try {
-    if(fmt==='pkv2') buildPKV2(isoDates);
-    else if(fmt==='ajay') buildAjay(isoDates);
+    if (fmt === 'pkv2') buildPKV2(isoDates);
+    else if (fmt === 'ajay') buildAjay(isoDates);
     else buildSheetwise(isoDates);
-  } catch(e) { showToast('❌ Export error: '+e.message,true); console.error(e); }
+  } catch(e) { showToast('❌ Export error: ' + e.message, true); console.error(e); }
 }
 
 function buildPKV2(isoDates) {
-  const BLUE_BG='FF5A9BFB', WHITE='FFFFFFFF', BLACK='FF000000', DARK='FF1A2D42', GREY='FFBFBFBF', LGREY='FFF5F5F5';
+  const BLUE_BG='FF5A9BFB',WHITE='FFFFFFFF',BLACK='FF000000',DARK='FF1A2D42',GREY='FFBFBFBF',LGREY='FFF5F5F5';
   const BASE_COLS=3, COLS_PER_DATE=5;
   function colOf(di,off){ return BASE_COLS+di*COLS_PER_DATE+off+1; }
-  function bdr(l){ const clr=l?'FFD0D0D0':GREY, b={style:'thin',color:{rgb:clr}}; return {top:b,bottom:b,left:b,right:b}; }
-  function sHdr(l)  { return {font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:BLUE_BG}},alignment:{horizontal:'center',vertical:'center'},border:bdr(l)}; }
-  function sData(a,l){ return {font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:a||'center',vertical:'center'},border:bdr(l)}; }
-  function sTitle() { return {font:{bold:true,color:{rgb:DARK},sz:11,name:'Calibri'},fill:{patternType:'none'},alignment:{horizontal:'left',vertical:'center'}}; }
-  function sTlr()   { return {font:{bold:true,color:{rgb:DARK},sz:11,name:'Calibri'},fill:{patternType:'none'},alignment:{horizontal:'center',vertical:'center'}}; }
-  function sDate()  { return {font:{sz:11,name:'Calibri',color:{rgb:DARK}},fill:{patternType:'none'},alignment:{horizontal:'center',vertical:'center'}}; }
-  function sGap()   { return {font:{},fill:{patternType:'solid',fgColor:{rgb:LGREY}},border:{}}; }
-  function put(ws,r,c,v,s,t){ const addr=XLSX.utils.encode_cell({r:r-1,c:c-1}); ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s}; }
-
-  const wb={SheetNames:['All Dates'],Sheets:{}}, ws={}, merges=[];
+  function bdr(l){ const clr=l?'FFD0D0D0':GREY,b={style:'thin',color:{rgb:clr}}; return {top:b,bottom:b,left:b,right:b}; }
+  function sHdr(l){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:BLUE_BG}},alignment:{horizontal:'center',vertical:'center'},border:bdr(l)};}
+  function sData(a,l){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:a||'center',vertical:'center'},border:bdr(l)};}
+  function sTitle(){return{font:{bold:true,color:{rgb:DARK},sz:11,name:'Calibri'},fill:{patternType:'none'},alignment:{horizontal:'left',vertical:'center'}};}
+  function sTlr(){return{font:{bold:true,color:{rgb:DARK},sz:11,name:'Calibri'},fill:{patternType:'none'},alignment:{horizontal:'center',vertical:'center'}};}
+  function sDate(){return{font:{sz:11,name:'Calibri',color:{rgb:DARK}},fill:{patternType:'none'},alignment:{horizontal:'center',vertical:'center'}};}
+  function sGap(){return{font:{},fill:{patternType:'solid',fgColor:{rgb:LGREY}},border:{}};}
+  function put(ws,r,c,v,s,t){const addr=XLSX.utils.encode_cell({r:r-1,c:c-1});ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s};}
+  const wb={SheetNames:['All Dates'],Sheets:{}},ws={},merges=[];
   const colWidths=[{wch:1},{wch:24.44},{wch:8}];
   isoDates.forEach(()=>colWidths.push({wch:10.33},{wch:8.89},{wch:9.89},{wch:8},{wch:2}));
   const lastRow=PKV_LAYOUT[PKV_LAYOUT.length-1].tlr+2;
   const rowHts=[]; for(let r=1;r<=lastRow;r++) rowHts.push({hpt:18});
-
   PKV_LAYOUT.forEach(sec=>{
     const mList=sec.machines||SECTIONS[sec.key]?.machines||[];
-    const {tr,hr,fr,tlr}=sec;
+    const{tr,hr,fr,tlr}=sec;
     put(ws,tr,2,sec.title,sTitle()); rowHts[tr-1]={hpt:16};
     isoDates.forEach((iso,di)=>{
-      const disp=toDisp(iso), shACol=colOf(di,0);
-      put(ws,tr,shACol,disp,sDate()); put(ws,tr,shACol+1,'',sDate()); put(ws,tr,shACol+2,'',sDate()); put(ws,tr,shACol+3,'',sDate());
+      const disp=toDisp(iso),shACol=colOf(di,0);
+      put(ws,tr,shACol,disp,sDate());put(ws,tr,shACol+1,'',sDate());put(ws,tr,shACol+2,'',sDate());put(ws,tr,shACol+3,'',sDate());
       merges.push({s:{r:tr-1,c:shACol-1},e:{r:tr-1,c:shACol+2}});
     });
-    put(ws,hr,2,'Machine Name',sHdr()); put(ws,hr,3,'UOM',sHdr()); rowHts[hr-1]={hpt:20};
+    put(ws,hr,2,'Machine Name',sHdr());put(ws,hr,3,'UOM',sHdr());rowHts[hr-1]={hpt:20};
     isoDates.forEach((_,di)=>{
       const shACol=colOf(di,0);
-      [' Shift A ',' Shift B ',' Shift C ','Total'].forEach((h,i)=>put(ws,hr,shACol+i,h,sHdr()));
+      [' Shift 1 ',' Shift 2 ',' Shift 3 ','Total'].forEach((h,i)=>put(ws,hr,shACol+i,h,sHdr()));
       put(ws,hr,shACol+4,'',sGap());
     });
     mList.forEach((mname,mi)=>{
-      const dr=fr+mi; rowHts[dr-1]={hpt:18};
-      put(ws,dr,2,mname,sData('left')); put(ws,dr,3,sec.uom,sData('center'));
+      const dr=fr+mi;rowHts[dr-1]={hpt:18};
+      put(ws,dr,2,mname,sData('left'));put(ws,dr,3,sec.uom,sData('center'));
       isoDates.forEach((iso,di)=>{
-        const allM=SECTIONS[sec.key]?.machines||[], realMi=allM.indexOf(mname);
+        const allM=SECTIONS[sec.key]?.machines||[],realMi=allM.indexOf(mname);
         const sa=realMi>=0&&gv(sec.key,iso,0,realMi)!==''?parseFloat(gv(sec.key,iso,0,realMi)):null;
         const sb=realMi>=0&&gv(sec.key,iso,1,realMi)!==''?parseFloat(gv(sec.key,iso,1,realMi)):null;
         const sc=realMi>=0&&gv(sec.key,iso,2,realMi)!==''?parseFloat(gv(sec.key,iso,2,realMi)):null;
-        const tot=(sa||0)+(sb||0)+(sc||0), shACol=colOf(di,0);
+        const tot=(sa||0)+(sb||0)+(sc||0),shACol=colOf(di,0);
         put(ws,dr,shACol,sa!==null?sa:'',sData('center'),sa!==null?'n':'s');
         put(ws,dr,shACol+1,sb!==null?sb:'',sData('center'),sb!==null?'n':'s');
         put(ws,dr,shACol+2,sc!==null?sc:'',sData('center'),sc!==null?'n':'s');
@@ -665,82 +656,78 @@ function buildPKV2(isoDates) {
         put(ws,dr,shACol+4,'',sGap());
       });
     });
-    rowHts[tlr-1]={hpt:18}; put(ws,tlr,2,'',sTlr()); put(ws,tlr,3,'TOTAL :-',sTlr());
+    rowHts[tlr-1]={hpt:18};put(ws,tlr,2,'',sTlr());put(ws,tlr,3,'TOTAL :-',sTlr());
     isoDates.forEach((iso,di)=>{
       let cSa=0,cSb=0,cSc=0;
-      mList.forEach(mn=>{ const allM=SECTIONS[sec.key]?.machines||[], rMi=allM.indexOf(mn);
+      mList.forEach(mn=>{const allM=SECTIONS[sec.key]?.machines||[],rMi=allM.indexOf(mn);
         cSa+=rMi>=0?(parseFloat(gv(sec.key,iso,0,rMi))||0):0;
         cSb+=rMi>=0?(parseFloat(gv(sec.key,iso,1,rMi))||0):0;
         cSc+=rMi>=0?(parseFloat(gv(sec.key,iso,2,rMi))||0):0;
       });
       const shACol=colOf(di,0);
-      put(ws,tlr,shACol,cSa,sTlr(),'n'); put(ws,tlr,shACol+1,cSb,sTlr(),'n');
-      put(ws,tlr,shACol+2,cSc,sTlr(),'n'); put(ws,tlr,shACol+3,cSa+cSb+cSc,sTlr(),'n');
+      put(ws,tlr,shACol,cSa,sTlr(),'n');put(ws,tlr,shACol+1,cSb,sTlr(),'n');
+      put(ws,tlr,shACol+2,cSc,sTlr(),'n');put(ws,tlr,shACol+3,cSa+cSb+cSc,sTlr(),'n');
       put(ws,tlr,shACol+4,'',sGap());
     });
     if(sec.extra){
-      const em=sec.extra, allM=SECTIONS[sec.key]?.machines||[], mi2=allM.findIndex(m=>m===em.name), er=em.row;
-      rowHts[er-1]={hpt:18}; put(ws,er,2,em.name,sData('left')); put(ws,er,3,em.uom,sData('center'));
+      const em=sec.extra,allM=SECTIONS[sec.key]?.machines||[],mi2=allM.findIndex(m=>m===em.name),er=em.row;
+      rowHts[er-1]={hpt:18};put(ws,er,2,em.name,sData('left'));put(ws,er,3,em.uom,sData('center'));
       isoDates.forEach((iso,di)=>{
         const sa2=mi2>=0&&gv(sec.key,iso,0,mi2)!==''?parseFloat(gv(sec.key,iso,0,mi2)):null;
         const sb2=mi2>=0&&gv(sec.key,iso,1,mi2)!==''?parseFloat(gv(sec.key,iso,1,mi2)):null;
         const sc2=mi2>=0&&gv(sec.key,iso,2,mi2)!==''?parseFloat(gv(sec.key,iso,2,mi2)):null;
-        const tot2=(sa2||0)+(sb2||0)+(sc2||0), shACol=colOf(di,0);
+        const tot2=(sa2||0)+(sb2||0)+(sc2||0),shACol=colOf(di,0);
         put(ws,er,shACol,sa2!==null?sa2:'',sData('center'),sa2!==null?'n':'s');
         put(ws,er,shACol+1,sb2!==null?sb2:'',sData('center'),sb2!==null?'n':'s');
         put(ws,er,shACol+2,sc2!==null?sc2:'',sData('center'),sc2!==null?'n':'s');
-        put(ws,er,shACol+3,tot2,sData('center'),'n'); put(ws,er,shACol+4,'',sGap());
+        put(ws,er,shACol+3,tot2,sData('center'),'n');put(ws,er,shACol+4,'',sGap());
       });
     }
   });
   const totalCols=BASE_COLS+isoDates.length*COLS_PER_DATE;
   ws['!ref']='A1:'+XLSX.utils.encode_col(totalCols-1)+lastRow;
-  ws['!merges']=merges; ws['!cols']=colWidths; ws['!rows']=rowHts;
+  ws['!merges']=merges;ws['!cols']=colWidths;ws['!rows']=rowHts;
   wb.Sheets['All Dates']=ws;
-  const from=document.getElementById('expDateFrom').value, to=document.getElementById('expDateTo').value;
+  const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
   const fname=from===to?`PKV_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`:`PKV_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb,fname,{bookType:'xlsx',cellStyles:true});
   showToast(`📥 PKV format exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 function buildAjay(isoDates) {
-  const NAVY='FF1A3A5C', STEEL='FF2E6DA4', WHITE='FFFFFFFF', GREY_BG='FFF2F2F2', BLACK='FF000000', BORDER_C='FFB0B0B0';
-  function bdr(){ const b={style:'thin',color:{rgb:BORDER_C}}; return {top:b,bottom:b,left:b,right:b}; }
-  function sDateHdr(){ return {font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'center',vertical:'center'},border:bdr()}; }
-  function sShiftHdr(){ return {font:{bold:true,color:{rgb:WHITE},sz:10,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:STEEL}},alignment:{horizontal:'center',vertical:'center'},border:bdr()}; }
-  function sMachineCell(){ return {font:{bold:true,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:GREY_BG}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()}; }
-  function sHeaderLabel(){ return {font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()}; }
-  function sData(){ return {font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:'center',vertical:'center'},border:bdr()}; }
-  function put(ws,r,c,v,s,t){ const addr=XLSX.utils.encode_cell({r:r-1,c:c-1}); ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s}; }
-
-  const machines=getAjayMachineList(), ws={}, merges=[];
-  const rowHts=[{hpt:22},{hpt:18}]; machines.forEach(()=>rowHts.push({hpt:18}));
-  const colWidths=[{wch:26}]; isoDates.forEach(()=>colWidths.push({wch:10},{wch:10},{wch:10}));
-
+  const NAVY='FF1A3A5C',STEEL='FF2E6DA4',WHITE='FFFFFFFF',GREY_BG='FFF2F2F2',BLACK='FF000000',BORDER_C='FFB0B0B0';
+  function bdr(){const b={style:'thin',color:{rgb:BORDER_C}};return{top:b,bottom:b,left:b,right:b};}
+  function sDateHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
+  function sShiftHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:10,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:STEEL}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
+  function sMachineCell(){return{font:{bold:true,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:GREY_BG}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()};}
+  function sHeaderLabel(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()};}
+  function sData(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
+  function put(ws,r,c,v,s,t){const addr=XLSX.utils.encode_cell({r:r-1,c:c-1});ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s};}
+  const machines=getAjayMachineList(),ws={},merges=[];
+  const rowHts=[{hpt:22},{hpt:18}];machines.forEach(()=>rowHts.push({hpt:18}));
+  const colWidths=[{wch:26}];isoDates.forEach(()=>colWidths.push({wch:10},{wch:10},{wch:10}));
   put(ws,1,1,'Date',sHeaderLabel());
   isoDates.forEach((iso,di)=>{
-    const disp=toDisp(iso), bc=2+di*3;
-    put(ws,1,bc,disp,sDateHdr()); put(ws,1,bc+1,'',sDateHdr()); put(ws,1,bc+2,'',sDateHdr());
+    const disp=toDisp(iso),bc=2+di*3;
+    put(ws,1,bc,disp,sDateHdr());put(ws,1,bc+1,'',sDateHdr());put(ws,1,bc+2,'',sDateHdr());
     merges.push({s:{r:0,c:bc-1},e:{r:0,c:bc+1}});
   });
-  put(ws,2,1,'Sensor name',sShiftHdr());
-  isoDates.forEach((_,di)=>{ const bc=2+di*3; put(ws,2,bc,'Shift A',sShiftHdr()); put(ws,2,bc+1,'Shift B',sShiftHdr()); put(ws,2,bc+2,'Shift C',sShiftHdr()); });
-
+  put(ws,2,1,'Machine Name',sShiftHdr());
+  isoDates.forEach((_,di)=>{const bc=2+di*3;put(ws,2,bc,'Shift 1',sShiftHdr());put(ws,2,bc+1,'Shift 2',sShiftHdr());put(ws,2,bc+2,'Shift 3',sShiftHdr());});
   machines.forEach((mname,mIdx)=>{
-    const row=3+mIdx; put(ws,row,1,mname,sMachineCell());
+    const row=3+mIdx;put(ws,row,1,mname,sMachineCell());
     isoDates.forEach((iso,di)=>{
-      const bc=2+di*3, lookup=MACHINE_SECTION_MAP[mname];
-      if(!lookup){ put(ws,row,bc,'',sData()); put(ws,row,bc+1,'',sData()); put(ws,row,bc+2,'',sData()); return; }
-      const {section,machineIdx}=lookup;
-      SHIFTS.forEach((_,si)=>{ const raw=gv(section,iso,si,machineIdx), val=raw!==''?parseFloat(raw):''; put(ws,row,bc+si,val,sData(),typeof val==='number'?'n':'s'); });
+      const bc=2+di*3,lookup=MACHINE_SECTION_MAP[mname];
+      if(!lookup){put(ws,row,bc,'',sData());put(ws,row,bc+1,'',sData());put(ws,row,bc+2,'',sData());return;}
+      const{section,machineIdx}=lookup;
+      SHIFTS.forEach((_,si)=>{const raw=gv(section,iso,si,machineIdx),val=raw!==''?parseFloat(raw):'';put(ws,row,bc+si,val,sData(),typeof val==='number'?'n':'s');});
     });
   });
-
-  const lastCol=1+isoDates.length*3, lastRow=2+machines.length;
+  const lastCol=1+isoDates.length*3,lastRow=2+machines.length;
   ws['!ref']=`A1:${XLSX.utils.encode_col(lastCol-1)}${lastRow}`;
-  ws['!merges']=merges; ws['!cols']=colWidths; ws['!rows']=rowHts;
+  ws['!merges']=merges;ws['!cols']=colWidths;ws['!rows']=rowHts;
   const wb={SheetNames:['Production Data'],Sheets:{'Production Data':ws}};
-  const from=document.getElementById('expDateFrom').value, to=document.getElementById('expDateTo').value;
+  const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
   const fname=from===to?`Ajay_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`:`Ajay_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb,fname,{bookType:'xlsx',cellStyles:true});
   showToast(`📥 Ajay sir's format exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
@@ -749,24 +736,24 @@ function buildAjay(isoDates) {
 function buildSheetwise(isoDates) {
   const wb=XLSX.utils.book_new();
   SNAMES.forEach(name=>{
-    const sec=SECTIONS[name], rows=[];
-    const h1=['Date']; isoDates.forEach(d=>h1.push(toDisp(d),'','')); rows.push(h1);
-    const h2=['Shift']; isoDates.forEach(()=>h2.push('Shift A','Shift B','Shift C')); rows.push(h2);
-    rows.push(['Machine / UOM',...isoDates.flatMap(()=>['','',''])]);
+    const sec=SECTIONS[name],rows=[];
+    const h1=['Date'];isoDates.forEach(d=>h1.push(toDisp(d),'',''));rows.push(h1);
+    const h2=['Shift'];isoDates.forEach(()=>h2.push('Shift 1','Shift 2','Shift 3'));rows.push(h2);
+    rows.push(['Machine',...isoDates.flatMap(()=>['','',''])]);
     sec.machines.forEach((m,mi)=>{
       const row=[m];
-      isoDates.forEach(d=>SHIFTS.forEach((_,si)=>{ const v=gv(name,d,si,mi); row.push(v!==''?+v:''); }));
+      isoDates.forEach(d=>SHIFTS.forEach((_,si)=>{const v=gv(name,d,si,mi);row.push(v!==''?+v:'');}));
       rows.push(row);
     });
     const tr=['TOTAL'];
-    isoDates.forEach(d=>SHIFTS.forEach((_,si)=>{ const s=sec.machines.reduce((a,__,mi)=>a+(+gv(name,d,si,mi)||0),0); tr.push(s||''); }));
+    isoDates.forEach(d=>SHIFTS.forEach((_,si)=>{const s=sec.machines.reduce((a,__,mi)=>a+(+gv(name,d,si,mi)||0),0);tr.push(s||'');}));
     rows.push(tr);
     const ws=XLSX.utils.aoa_to_sheet(rows);
     ws['!merges']=isoDates.map((_,di)=>({s:{r:0,c:1+di*3},e:{r:0,c:3+di*3}}));
     ws['!cols']=[{wch:26},...isoDates.flatMap(()=>[{wch:10},{wch:10},{wch:10}])];
     XLSX.utils.book_append_sheet(wb,ws,name.substring(0,31));
   });
-  const from=document.getElementById('expDateFrom').value, to=document.getElementById('expDateTo').value;
+  const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
   const fname=from===to?`production_sheetwise_${toDisp(from).replace(/-/g,'_')}.xlsx`:`production_sheetwise_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb,fname);
   showToast(`📥 Sheet-wise exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
@@ -775,48 +762,54 @@ function buildSheetwise(isoDates) {
 // ════════════════════════════════════════
 //  DATA STORE
 // ════════════════════════════════════════
-function gv(name,d,si,mi){ const v=baseline[name]?.[d]?.[si]?.[mi]; return (v!==undefined&&v!==null&&v!=='') ? v : ''; }
-function getBase(name,mi,si){ return baseline[name]?.[curDate()]?.[si]?.[mi]??''; }
-function setBase(name,iso,si,vals){ if(!baseline[name][iso])baseline[name][iso]={}; if(!baseline[name][iso][si])baseline[name][iso][si]=[]; vals.forEach((v,mi)=>baseline[name][iso][si][mi]=v); }
-function setBase_single(name,iso,mi,si,val){ if(!baseline[name][iso])baseline[name][iso]={}; if(!baseline[name][iso][si])baseline[name][iso][si]=[]; baseline[name][iso][si][mi]=val; }
+function gv(name,d,si,mi){const v=baseline[name]?.[d]?.[si]?.[mi];return(v!==undefined&&v!==null&&v!=='')?v:'';}
+function getBase(name,mi,si){return baseline[name]?.[curDate()]?.[si]?.[mi]??'';}
+function setBase(name,iso,si,vals){if(!baseline[name][iso])baseline[name][iso]={};baseline[name][iso][si]=Array.isArray(vals)?vals.slice():[];}
+function setBase_single(name,iso,mi,si,val){if(!baseline[name][iso])baseline[name][iso]={};if(!baseline[name][iso][si])baseline[name][iso][si]=[];baseline[name][iso][si][mi]=val;}
 
 // ════════════════════════════════════════
 //  KEYBOARD NAVIGATION
 // ════════════════════════════════════════
-document.addEventListener('keydown',e=>{
-  if(e.key!=='Enter') return;
-  const f=document.activeElement; if(!f?.classList.contains('ni')) return;
-  const all=[...document.querySelectorAll('.section-panel.active .ni')];
-  const idx=all.indexOf(f);
-  if(idx<all.length-1){all[idx+1].focus();all[idx+1].select();}
+document.addEventListener('keydown', e => {
+  const f = document.activeElement;
+  if (!f?.classList.contains('ni')) return;
+  const panel = f.closest('.section-panel');
+  if (!panel) return;
+  const all = [...panel.querySelectorAll('.ni')];
+  const idx = all.indexOf(f);
+  const totalCols = SHIFTS.length;
+  if (e.key === 'Enter' || e.key === 'ArrowDown') { e.preventDefault(); const n=all[idx+totalCols]; if(n){n.focus();n.select();} }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); const p=all[idx-totalCols]; if(p){p.focus();p.select();} }
+  else if (e.key === 'ArrowRight' || e.key === 'Tab') { if(e.key==='Tab')e.preventDefault(); const n=all[idx+1]; if(n){n.focus();n.select();} }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); const p=all[idx-1]; if(p){p.focus();p.select();} }
 });
 
 // ════════════════════════════════════════
 //  UTILS
 // ════════════════════════════════════════
-function sl(s)       { return s.toLowerCase().replace(/[^a-z0-9]/g,'-'); }
-function curDate()   { return document.getElementById('entryDate').value; }
-function isoToday()  { return new Date().toISOString().slice(0,10); }
-function toDisp(iso) { const [y,m,d]=iso.split('-'); return `${d}-${m}-${y}`; }
-function dk(n,mi,si) { return `${n}§${mi}§${si}`; }
-function parseKey(k) { const [name,...rest]=k.split('§'); return [name,...rest]; }
-function flashSaved(name,mi,si){ const el=inp(sl(name),mi,si); if(!el)return; el.classList.add('saved'); setTimeout(()=>el.classList.remove('saved'),900); }
+function sl(s){return s.toLowerCase().replace(/[^a-z0-9]/g,'-');}
+function curDate(){return document.getElementById('entryDate').value;}
+function localISO(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${day}`;}
+function isoToday(){return localISO(new Date());}
+function isoYesterday(){const d=new Date();d.setDate(d.getDate()-1);return localISO(d);}
+function toDisp(iso){const[y,m,d]=iso.split('-');return`${d}-${m}-${y}`;}
+function dk(n,mi,si){return`${n}§${mi}§${si}`;}
+function parseKey(k){const[name,...rest]=k.split('§');return[name,...rest];}
+function flashSaved(name,mi,si){const el=inp(sl(name),mi,si);if(!el)return;el.classList.add('saved');setTimeout(()=>el.classList.remove('saved'),900);}
 function refreshDot(name){
-  const iso=curDate(), id=sl(name), sec=SECTIONS[name];
-  const total=SHIFTS.length*sec.machines.length;
-  let filled=0;
+  const iso=curDate(),id=sl(name),sec=SECTIONS[name];
+  const total=SHIFTS.length*sec.machines.length; let filled=0;
   SHIFTS.forEach((_,si)=>sec.machines.forEach((__,mi)=>{
     const v=baseline[name]?.[iso]?.[si]?.[mi];
-    if((v!==undefined&&v!==null&&v!=='')||(inp(id,mi,si)?.value||'')!=='') filled++;
+    if(v!==undefined&&v!==null&&v!=='')filled++;
+    else if((inp(id,mi,si)?.value||'')!=='')filled++;
   }));
-  const tab=document.getElementById('tab-'+id);
-  if(!tab) return;
+  const tab=document.getElementById('tab-'+id); if(!tab)return;
   tab.classList.remove('dot-partial','dot-full');
-  if(filled===total) tab.classList.add('dot-full');
-  else if(filled>0)  tab.classList.add('dot-partial');
-  // else: neither class = red dot (default)
+  if(filled===total)tab.classList.add('dot-full');
+  else if(filled>0)tab.classList.add('dot-partial');
 }
-function refreshDot_all(){ SNAMES.forEach(refreshDot); }
+function refreshDot_all(){SNAMES.forEach(refreshDot);}
 function refreshSaveStatus(msg){
   const el=document.getElementById('saveStatus');
   if(msg){el.textContent=msg;return;}
@@ -834,9 +827,9 @@ function setBtnState(which,busy){
     [b1,b2].forEach(b=>{if(b){b.disabled=busy;b.textContent=busy?'⏳ Saving…':'💾 Save All';}});}
 }
 function showToast(msg,isErr=false,isWarn=false){
-  const t=document.getElementById('toast'); t.textContent=msg;
+  const t=document.getElementById('toast');t.textContent=msg;
   t.className='show'+(isErr?' err':isWarn?' warn':'');
-  clearTimeout(window._tt); window._tt=setTimeout(()=>t.className='',3800);
+  clearTimeout(window._tt);window._tt=setTimeout(()=>t.className='',3800);
 }
 
 init();
