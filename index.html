@@ -379,22 +379,22 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
         <p>Each section in separate sheet with respective machines, dates on top, shift-wise entries</p>
       </div>
       <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:9px;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📋 PKV Sir's Format</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📋 Mini-Table Format</div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;">
           <div class="exp-opt" style="flex:1;min-width:160px;margin-bottom:0;" onclick="doExport('pkv2_xls')">
-            <h4>🖥️ XLS (Styled)</h4>
+            <h4>🖥️ XLS (More Styled)</h4>
             <p style="color:var(--accent);font-weight:600;">Fully formatted with colours &amp; borders</p>
             <p style="margin-top:3px;font-size:10px;color:var(--muted);">⚠ May not open on mobile or newer Office versions</p>
           </div>
           <div class="exp-opt" style="flex:1;min-width:160px;margin-bottom:0;" onclick="doExport('pkv2_xlsx')">
-            <h4>📱 XLSX (Compatible)</h4>
+            <h4>📱 XLSX (More Compatible)</h4>
             <p style="color:var(--green);font-weight:600;">Opens on any device &amp; any Office version</p>
             <p style="margin-top:3px;font-size:10px;color:var(--muted);">No pre-applied design / formatting</p>
           </div>
         </div>
       </div>
-      <div class="exp-opt" onclick="doExport('ajay')">
-        <h4>📊 Ajay Sir's Format</h4>
+      <div class="exp-opt" onclick="doExport('ALPHABETICAL')">
+        <h4>📊 Alphabetical Format</h4>
         <p>All machines arranged alphabetically in one sheet, date-wise raw data</p>
       </div>
     </div>
@@ -580,7 +580,7 @@ const SHIFTS = ['Shift 1', 'Shift 2', 'Shift 3'];
 const SH_CLS  = ['sha', 'shb', 'shc'];
 const SH_VCLS = ['sha-v', 'shb-v', 'shc-v'];
 
-const AJAY_EXTRA_MACHINES = ['Cooling tower'];
+const ALPHABETICAL_EXTRA_MACHINES = ['Cooling tower'];
 let MACHINE_SECTION_MAP = {};
 
 function rebuildMachineMap() {
@@ -592,10 +592,10 @@ function rebuildMachineMap() {
   });
 }
 
-function getAjayMachineList() {
+function getALPHABETICALMachineList() {
   const all = [];
   SNAMES.forEach(name => SECTIONS[name].machines.forEach(m => all.push(m)));
-  AJAY_EXTRA_MACHINES.forEach(m => { if (!MACHINE_SECTION_MAP[m]) all.push(m); });
+  ALPHABETICAL_EXTRA_MACHINES.forEach(m => { if (!MACHINE_SECTION_MAP[m]) all.push(m); });
   return all.slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 }
 
@@ -1809,7 +1809,7 @@ function buildExcel(fmt, isoDates) {
   try {
     if (fmt === 'pkv2_xls') buildPKV2(isoDates, 'xls');
     else if (fmt === 'pkv2_xlsx') buildPKV2(isoDates, 'xlsx');
-    else if (fmt === 'ajay') buildAjay(isoDates);
+    else if (fmt === 'ALPHABETICAL') buildALPHABETICAL(isoDates);
     else buildSheetwise(isoDates);
   } catch(e) { showToast('❌ Export error: ' + e.message, true); console.error(e); }
 }
@@ -1829,7 +1829,7 @@ function buildPKV2(isoDates, format) {
 
 // ── PKV XLS (HTML-table styled blob) ─────────────────────────
 function buildPKV2_xls(isoDates, from, to) {
-  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PKV Report</title><style>
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Mini table Report</title><style>
   body{font-family:Calibri,Arial,sans-serif;margin:0;padding:0;}
   table{border-collapse:collapse;width:100%;margin-bottom:12pt;}
   .sec-title{font-size:13pt;font-weight:bold;background:#5B9BD5;color:#fff;text-align:center;border:1px solid #000;padding:6px;}
@@ -1981,7 +1981,7 @@ function buildPKV2_xls(isoDates, from, to) {
   a.href = url; a.download = fname;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
-  showToast(`📥 PKV (XLS styled) exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
+  showToast(`📥 Production report has been downloaded in mini-table format (XLS)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 // ── PKV XLSX (SheetJS AOA, no styling, universal) ────────────
@@ -2114,18 +2114,18 @@ function buildPKV2_xlsx(isoDates, from, to) {
   ws['!merges'] = merges;
   const totalCols = 2 + isoDates.length * 4;
   ws['!cols'] = [{wch:28},{wch:7},...isoDates.flatMap(()=>[{wch:12},{wch:12},{wch:12},{wch:10}])];
-  XLSX.utils.book_append_sheet(wb, ws, 'PKV Report');
+  XLSX.utils.book_append_sheet(wb, ws, 'Production Report');
   const fname = from === to
     ? `PKV_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`
     : `PKV_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb, fname);
-  showToast(`📥 PKV (XLSX compatible) exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
+  showToast(`📥 Production report has been downloaded in mini-table format (XLSX)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 // ════════════════════════════════════════
-//  AJAY FORMAT
+//  ALPHABETICAL FORMAT
 // ════════════════════════════════════════
-function buildAjay(isoDates) {
+function buildALPHABETICAL(isoDates) {
   const NAVY='FF1A3A5C',STEEL='FF2E6DA4',WHITE='FFFFFFFF',GREY_BG='FFF2F2F2',BLACK='FF000000',BORDER_C='FFB0B0B0';
   function bdr(){const b={style:'thin',color:{rgb:BORDER_C}};return{top:b,bottom:b,left:b,right:b};}
   function sDateHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
@@ -2136,10 +2136,10 @@ function buildAjay(isoDates) {
   function sData(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
   function sNote(){return{font:{italic:true,color:{rgb:'FF806000'},sz:9,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:'FFFFFBEA'}},alignment:{horizontal:'left',vertical:'center',wrapText:true},border:bdr()};}
   function put(ws,r,c,v,s,t){const addr=XLSX.utils.encode_cell({r:r-1,c:c-1});ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s};}
-  const machines=getAjayMachineList(),ws={},merges=[];
-  // For Ajay: cols = 1 machine col + per date: 3 shifts + (if any note-enabled section has this machine: 3 note cols)
+  const machines=getALPHABETICALMachineList(),ws={},merges=[];
+  // For ALPHABETICAL: cols = 1 machine col + per date: 3 shifts + (if any note-enabled section has this machine: 3 note cols)
   // Simple approach: add 3 note cols per date at end of each date group for machines in note-enabled sections
-  const anyNotesOn = SNAMES.some(n => NOTES_ENABLED[n]);
+  const anyNotesOn = false;
   const colsPerDate = anyNotesOn ? 6 : 3;
   const rowHts=[{hpt:22},{hpt:18}];machines.forEach(()=>rowHts.push({hpt:18}));
   const colWidths=[{wch:26}];
@@ -2187,9 +2187,9 @@ function buildAjay(isoDates) {
   ws['!ref']=`A1:${XLSX.utils.encode_col(lastCol-1)}${lastRow}`;ws['!merges']=merges;ws['!cols']=colWidths;ws['!rows']=rowHts;
   const wb={SheetNames:['Production Data'],Sheets:{'Production Data':ws}};
   const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
-  const fname=from===to?`Ajay_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`:`Ajay_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
+  const fname=from===to?`Production_${toDisp(from).replace(/-/g,'_')}.xlsx`:`Production_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb,fname,{bookType:'xlsx',cellStyles:true});
-  showToast(`📥 Ajay sir's format exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
+  showToast(`📥 Production data has been exported in Alphabetical! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 // ════════════════════════════════════════
