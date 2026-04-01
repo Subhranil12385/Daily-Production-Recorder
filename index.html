@@ -381,12 +381,12 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
       <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:9px;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📋 Mini-Table Format</div>
         <div style="display:flex;gap:7px;flex-wrap:wrap;">
-          <div class="exp-opt" style="flex:1;min-width:160px;margin-bottom:0;" onclick="doExport('pkv2_xls')">
+          <div class="exp-opt" style="flex:1;min-width:160px;margin-bottom:0;" onclick="doExport('minitable2_xls')">
             <h4>🖥️ XLS (More Styled)</h4>
             <p style="color:var(--accent);font-weight:600;">Fully formatted with colours &amp; borders</p>
             <p style="margin-top:3px;font-size:10px;color:var(--muted);">⚠ May not open on mobile or newer Office versions</p>
           </div>
-          <div class="exp-opt" style="flex:1;min-width:160px;margin-bottom:0;" onclick="doExport('pkv2_xlsx')">
+          <div class="exp-opt" style="flex:1;min-width:160px;margin-bottom:0;" onclick="doExport('minitable2_xlsx')">
             <h4>📱 XLSX (More Compatible)</h4>
             <p style="color:var(--green);font-weight:600;">Opens on any device &amp; any Office version</p>
             <p style="margin-top:3px;font-size:10px;color:var(--muted);">No pre-applied design / formatting</p>
@@ -1807,28 +1807,28 @@ function setProgressUI(done, total) {
 
 function buildExcel(fmt, isoDates) {
   try {
-    if (fmt === 'pkv2_xls') buildPKV2(isoDates, 'xls');
-    else if (fmt === 'pkv2_xlsx') buildPKV2(isoDates, 'xlsx');
+    if (fmt === 'minitable2_xls') buildminitable2(isoDates, 'xls');
+    else if (fmt === 'minitable2_xlsx') buildminitable2(isoDates, 'xlsx');
     else if (fmt === 'ALPHABETICAL') buildALPHABETICAL(isoDates);
     else buildSheetwise(isoDates);
   } catch(e) { showToast('❌ Export error: ' + e.message, true); console.error(e); }
 }
 
 // ════════════════════════════════════════
-//  PKV FORMAT  (format = 'xls' | 'xlsx')
+//  minitable FORMAT  (format = 'xls' | 'xlsx')
 //  Notes appear as a "Remarks" row below each machine row.
 //  XLS  = HTML-table blob, fully styled, may not open on mobile.
 //  XLSX = SheetJS AOA, plain, opens everywhere.
 // ════════════════════════════════════════
-function buildPKV2(isoDates, format) {
+function buildminitable2(isoDates, format) {
   const from = document.getElementById('expDateFrom').value;
   const to   = document.getElementById('expDateTo').value;
-  if (format === 'xlsx') { buildPKV2_xlsx(isoDates, from, to); return; }
-  buildPKV2_xls(isoDates, from, to);
+  if (format === 'xlsx') { buildminitable2_xlsx(isoDates, from, to); return; }
+  buildminitable2_xls(isoDates, from, to);
 }
 
-// ── PKV XLS (HTML-table styled blob) ─────────────────────────
-function buildPKV2_xls(isoDates, from, to) {
+// ── minitable XLS (HTML-table styled blob) ─────────────────────────
+function buildminitable2_xls(isoDates, from, to) {
   let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Mini table Report</title><style>
   body{font-family:Calibri,Arial,sans-serif;margin:0;padding:0;}
   table{border-collapse:collapse;width:100%;margin-bottom:12pt;}
@@ -1974,8 +1974,8 @@ function buildPKV2_xls(isoDates, from, to) {
 
   const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
   const fname = from === to
-    ? `PKV_Format_${toDisp(from).replace(/-/g,'_')}.xls`
-    : `PKV_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xls`;
+    ? `minitable_Format_${toDisp(from).replace(/-/g,'_')}.xls`
+    : `minitable_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xls`;
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = fname;
@@ -1984,8 +1984,8 @@ function buildPKV2_xls(isoDates, from, to) {
   showToast(`📥 Production report has been downloaded in mini-table format (XLS)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
-// ── PKV XLSX (SheetJS AOA, no styling, universal) ────────────
-function buildPKV2_xlsx(isoDates, from, to) {
+// ── minitable XLSX (SheetJS AOA, no styling, universal) ────────────
+function buildminitable2_xlsx(isoDates, from, to) {
   const wb = XLSX.utils.book_new();
   const rows = [];
   const merges = [];
@@ -2116,8 +2116,8 @@ function buildPKV2_xlsx(isoDates, from, to) {
   ws['!cols'] = [{wch:28},{wch:7},...isoDates.flatMap(()=>[{wch:12},{wch:12},{wch:12},{wch:10}])];
   XLSX.utils.book_append_sheet(wb, ws, 'Production Report');
   const fname = from === to
-    ? `PKV_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`
-    : `PKV_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
+    ? `minitable_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`
+    : `minitable_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb, fname);
   showToast(`📥 Production report has been downloaded in mini-table format (XLSX)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
