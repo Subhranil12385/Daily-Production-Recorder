@@ -1974,8 +1974,8 @@ function buildminitable2_xls(isoDates, from, to) {
 
   const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
   const fname = from === to
-    ? `minitable_Format_${toDisp(from).replace(/-/g,'_')}.xls`
-    : `minitable_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xls`;
+    ? `Production_Report_${toDisp(from).replace(/-/g,'_')}.xls`
+    : `Production_Report_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xls`;
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = fname;
@@ -2116,8 +2116,8 @@ function buildminitable2_xlsx(isoDates, from, to) {
   ws['!cols'] = [{wch:28},{wch:7},...isoDates.flatMap(()=>[{wch:12},{wch:12},{wch:12},{wch:10}])];
   XLSX.utils.book_append_sheet(wb, ws, 'Production Report');
   const fname = from === to
-    ? `minitable_Format_${toDisp(from).replace(/-/g,'_')}.xlsx`
-    : `minitable_Format_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
+    ? `Production_Report_${toDisp(from).replace(/-/g,'_')}.xlsx`
+    : `Production_Report_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb, fname);
   showToast(`📥 Production report has been downloaded in mini-table format (XLSX)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
