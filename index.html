@@ -1756,7 +1756,7 @@ async function doExport(fmt) {
   document.getElementById('expProgress').classList.add('show');
   const totalWork = Math.max(missingDates.length, 1);
   setProgressUI(0, totalWork);
-  const BATCH_SIZE = 2;
+  const BATCH_SIZE = 1;
   for (let di = 0; di < missingDates.length; di += BATCH_SIZE) {
     const batch = missingDates.slice(di, di + BATCH_SIZE);
     const calls = [];
