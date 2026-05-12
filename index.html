@@ -148,7 +148,7 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 .date-range-row span{font-size:12px;color:var(--muted);}
 .date-range-row input[type="date"]{flex:1;min-width:120px;font-size:12px;padding:5px 8px;}
 .range-presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
-.range-preset{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);cursor:pointer;background:transparent;transition:.14s;}
+.range-preset{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid var(--border2);color:var(--muted);cursor:pointer;background:transparent;transition:.14px;}
 .range-preset:hover{border-color:var(--accent);color:var(--accent);}
 .range-preset.act{background:var(--accent);color:#fff;border-color:var(--accent);}
 .exp-progress{display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px;text-align:center;}
@@ -385,8 +385,14 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
         <button class="range-preset" onclick="setPreset('all',this)">All Data</button>
       </div>
     </div>
+    <!-- ── ARCHIVE STATUS BANNER (shown while Drive cache is being built) ── -->
+    <div id="archiveBanner" style="display:none;background:rgba(26,95,180,.07);border:1px solid rgba(26,95,180,.25);border-radius:8px;padding:9px 12px;margin-bottom:10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--blue);display:flex;align-items:center;gap:8px;">
+      <span>⚡ First-time setup: </span>
+      <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="triggerArchiveAll()">Archive All Historical Data to Drive</button>
+      <span style="opacity:.6;font-weight:400;">(makes future exports instant)</span>
+    </div>
     <div class="exp-progress" id="expProgress">
-      <p id="expProgressMsg">Fetching data from Google Sheets…</p>
+      <p id="expProgressMsg">Fetching data…</p>
       <div class="progress-bar-wrap"><div class="progress-bar-fill" id="expProgressBar" style="width:0%"></div></div>
     </div>
     <div id="expBtns">
@@ -502,7 +508,7 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
 // ════════════════════════════════════════
 //  APPS SCRIPT ENDPOINT
 // ════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbz2mddDDSlUDOopYHb8aQ2shyIKk5X1NVFmpMvIXDXLRr6uJsnCOC80QyysgbWAP9P5/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzISL9-7KpCz-P8_ibtGlYFZMmjJfBE_LWBwyesk6ojiU3vNLmpp-y99yoyAThrafDc/exec';
 
 // ════════════════════════════════════════
 //  TABS SCROLL BUTTONS
@@ -545,8 +551,6 @@ function gasPost(body) {
 // ════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════
-// DEFAULT_SECTIONS must match your Google Sheet tab names exactly.
-// These are the actual section names stored in your __Config__ sheet.
 let SECTIONS = {
   'Peeling Veneer Production':      { machines:['PEELING-1','PEELING-2','PEELING-3','Peeling-4','PEELING-6','PEELING-8FT'], uom:'CBM', linkedGroups:[] },
   'Dryer-wise production':          { machines:['Dryer 1','Dryer 2','Dryer 3','Dryer 4','Dryer 5','Dryer 6','Dryer 7','Dryer 8'], uom:'CBM', linkedGroups:[] },
@@ -561,16 +565,10 @@ let SECTIONS = {
   'Finishing section production':   { machines:['DDSAW','WBS-1','WBS-2','SQUEEZER','STEEL WOOL MACHINE','GRECON','STAMPING MACHINE-1','STAMPING MACHINE-2'], uom:'PCS', linkedGroups:[{label:'DDSAW/WBS/SQUEEZER',members:['DDSAW','WBS-1','WBS-2','SQUEEZER']}] }
 };
 
-// Global distribution rules — loaded from GAS config
-// Each rule: { id, name, enabled, sources:[{section,machine}], targets:[{section,machine}], shifts:[0,1,2], ratios:[1,1,...] }
 let DISTRIBUTION_RULES = [];
-
-// notes-enabled map: { sectionName: true/false }
 let NOTES_ENABLED = {};
-// notes cache: { sectionName: { dateStr: { key: noteText } } }
 const notesCache = {};
 
-// ── LINKED GROUPS HELPERS ──
 function getLinkedMap(name) {
   const sec = SECTIONS[name];
   const map = {};
@@ -760,9 +758,7 @@ function showDiagnosticError(title, lines) {
 async function init() {
   applyTheme();
   let configError = null;
-  let configLoaded = false;
 
-  // Update loading text
   const ldSub = document.querySelector('.ld-sub');
   if (ldSub) ldSub.textContent = 'Connecting to Google Sheets…';
 
@@ -775,16 +771,11 @@ async function init() {
       SECTIONS = res.sections;
       SNAMES = Object.keys(SECTIONS);
       SNAMES.forEach(s => { if (!baseline[s]) baseline[s] = {}; });
-      configLoaded = true;
     } else {
-      configError = 'Google Sheets returned an empty or unrecognised response. The config sheet (__Config__) may be blank or the GAS URL may be wrong.';
+      configError = 'Google Sheets returned an empty or unrecognised response.';
     }
-    if (res && Array.isArray(res.distributionRules)) {
-      DISTRIBUTION_RULES = res.distributionRules;
-    }
-    if (res && res.notesEnabled && typeof res.notesEnabled === 'object') {
-      NOTES_ENABLED = res.notesEnabled;
-    }
+    if (res && Array.isArray(res.distributionRules)) DISTRIBUTION_RULES = res.distributionRules;
+    if (res && res.notesEnabled && typeof res.notesEnabled === 'object') NOTES_ENABLED = res.notesEnabled;
   } catch(e) {
     configError = e.message || String(e);
   }
@@ -798,7 +789,6 @@ async function init() {
   refreshUndoRedoBtns();
 
   if (configError) {
-    // Build a detailed diagnostic report
     const diagLines = [
       `<strong style="color:#b83228;">❌ Could not load configuration from Google Sheets.</strong>`,
       `<hr style="border:none;border-top:1px solid #e4eaf0;margin:8px 0;">`,
@@ -806,22 +796,13 @@ async function init() {
       `<hr style="border:none;border-top:1px solid #e4eaf0;margin:8px 0;">`,
       `<strong>GAS URL being used:</strong><br><code style="font-size:11px;word-break:break-all;background:#f0f4f8;padding:3px 6px;border-radius:4px;">${GAS_URL}</code>`,
       `<hr style="border:none;border-top:1px solid #e4eaf0;margin:8px 0;">`,
-      `<strong>What this means:</strong>`,
-      `• The dashboard is running with <strong>hardcoded defaults</strong> — data may not load correctly.`,
-      `• Most likely cause: the GAS (Apps Script) deployment URL above is wrong, not yet deployed, or your internet connection is blocking it.`,
-      `• Second possible cause: the script was not re-deployed after changes.`,
-      `<hr style="border:none;border-top:1px solid #e4eaf0;margin:8px 0;">`,
-      `<strong>✅ Current section names hardcoded in this dashboard (used as fallback):</strong>`,
-      ...Object.keys(SECTIONS).map(n => `&nbsp;&nbsp;• <code style="background:#f0f4f8;padding:1px 5px;border-radius:3px;">${n}</code>`),
-      `<hr style="border:none;border-top:1px solid #e4eaf0;margin:8px 0;">`,
       `<strong>How to fix:</strong>`,
       `1. Open Google Apps Script → Deploy → Manage Deployments → copy the Web App URL`,
       `2. Paste it as <code>GAS_URL</code> at the top of this HTML file`,
       `3. Make sure the deployment is set to <em>Execute as: Me</em> and <em>Who has access: Anyone</em>`,
-      `4. Save and reopen this file`,
     ];
     showDiagnosticError('CONFIGURATION ERROR', diagLines);
-    return; // Don't proceed with data fetch since config failed
+    return;
   }
 
   if (ldSub) ldSub.textContent = 'Loading production data…';
@@ -905,9 +886,8 @@ function buildPanel(name) {
   const gc = notesOn ? `${mw}px 46px repeat(3,1fr) 32px 58px` : `${mw}px 46px repeat(3,1fr) 58px`;
   const linkedMap = getLinkedMap(name);
 
-  // ── Check which machines in this section are involved in distribution rules ──
-  const srcMachines = new Set();  // machines that are sources (send their data)
-  const tgtMachines = new Set();  // machines that are targets (receive calculated data)
+  const srcMachines = new Set();
+  const tgtMachines = new Set();
   (DISTRIBUTION_RULES || []).forEach(rule => {
     if (!rule.enabled) return;
     (rule.sources || []).forEach(s => { if (s.section === name) srcMachines.add(s.machine); });
@@ -973,7 +953,6 @@ function buildPanel(name) {
                   title="Add/view note for this machine">📝</button>
                </div>`
             : '';
-          // Build shift cells — when notes enabled, wrap input + plain grey note text in a flex column
           const shiftCells = SHIFTS.map((_,si) => {
             const inputEl = `<input class="ni ${SH_CLS[si]}${isTgt?' dist-tgt-input':''}" type="number" min="0" step="any"
               id="i-${id}-${mi}-${si}"
@@ -1019,7 +998,6 @@ function buildPanel(name) {
 </div>`;
 }
 
-// Build the plain-language distribution info banner for a section tab
 function buildDistBanner(name) {
   const activeRules = (DISTRIBUTION_RULES || []).filter(rule => {
     if (!rule.enabled) return false;
@@ -1031,9 +1009,7 @@ function buildDistBanner(name) {
 
   const parts = activeRules.map(rule => {
     const srcHere  = (rule.sources || []).filter(s => s.section === name).map(s => s.machine);
-    const srcOther = (rule.sources || []).filter(s => s.section !== name);
     const tgtHere  = (rule.targets || []).filter(t => t.section === name).map(t => t.machine);
-    const tgtOther = (rule.targets || []).filter(t => t.section !== name);
     const shifts   = (rule.shifts || []).map(si => `Shift ${si+1}`).join(', ');
     const ratios   = rule.ratios || [];
     const targets  = rule.targets || [];
@@ -1042,7 +1018,6 @@ function buildDistBanner(name) {
     const rLabel = rule.name ? `<strong>${rule.name}</strong>` : `<strong>Rule</strong>`;
 
     if (srcHere.length) {
-      // This tab has source machines
       const allSources = (rule.sources || []).map(s => `<span style="color:var(--accent);font-weight:700;">${s.machine}</span>${s.section !== name ? ` <span style="opacity:.65;">(${s.section})</span>` : ''}`).join(', ');
       const allTargets = targets.map((t, ti) => {
         const r = ratios[ti] !== undefined ? ratios[ti] : 1;
@@ -1052,16 +1027,15 @@ function buildDistBanner(name) {
       }).join(', ');
       lines.push(`${rLabel}: The total output of ${allSources} is added up and automatically split across ${allTargets} — applied to ${shifts}.`);
     } else if (tgtHere.length) {
-      // This tab only has target machines
       const allSources = (rule.sources || []).map(s => `<span style="color:var(--accent);font-weight:700;">${s.machine}</span> <span style="opacity:.65;">(${s.section})</span>`).join(', ');
-      const myTargets = tgtHere.map((t, idx) => {
+      const myTargets = tgtHere.map((t) => {
         const fullIdx = targets.findIndex(x => x.machine === t && x.section === name);
         const r = ratios[fullIdx] !== undefined ? ratios[fullIdx] : 1;
         const totalR = targets.reduce((s,_,i) => s + (ratios[i]||1), 0);
         const pct = totalR > 0 ? Math.round(r / totalR * 100) : 0;
         return `<span style="color:var(--blue);font-weight:700;">${t}</span> <span style="opacity:.55;">(gets ${pct}% of total)</span>`;
       }).join(', ');
-      lines.push(`${rLabel}: Values here are auto-filled. They come from the total of ${allSources}, then ${pct_note(rule, name)} — applied to ${shifts}. Machines receiving values: ${myTargets}.`);
+      lines.push(`${rLabel}: Values here are auto-filled. They come from the total of ${allSources} — applied to ${shifts}. Machines receiving values: ${myTargets}.`);
     }
     return lines.join(' ');
   });
@@ -1080,18 +1054,13 @@ function buildDistBanner(name) {
       </span>
       <span style="font-size:11px;display:inline-flex;align-items:center;gap:4px;">
         <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(26,95,180,.2);border:1.5px solid var(--blue);"></span>
-        <span style="color:var(--blue);font-weight:700;">Auto-filled</span> — values are calculated automatically; cannot be edited manually. To edit, disable it from the Admin tab.
+        <span style="color:var(--blue);font-weight:700;">Auto-filled</span> — values are calculated automatically; cannot be edited manually.
       </span>
     </div>
   </div>`;
 }
 
 function pct_note(rule, name) {
-  const targets = rule.targets || [];
-  const ratios = rule.ratios || [];
-  const totalR = targets.reduce((s,_,i) => s + (ratios[i]||1), 0);
-  const myTargets = targets.filter(t => t.section === name);
-  if (myTargets.length === targets.length) return 'split equally among all target machines per shift';
   return 'distributed according to the set ratio';
 }
 
@@ -1188,20 +1157,10 @@ function fetchAll(manual) {
       }));
       recalcAll(name); refreshDot(name);
     });
-    // Fetch shift data + notes for enabled sections
     const noteSections = SNAMES.filter(n => NOTES_ENABLED[n]);
     let pending = SNAMES.length * SHIFTS.length + noteSections.length;
     const errors = [];
     if (pending === 0) { resolveAll(); return; }
-    const maybeDone = () => {
-      if (pending <= 0) {
-        if (!errors.length) { setChip('ok', '✓ Loaded'); if (manual) showToast('✅ Data loaded'); }
-        else { setChip('err', '⚠ Partial load'); showToast('⚠ Some data failed — press ↺ Load', false, true); }
-        setBtnState('load', false);
-        resolveAll();
-      }
-    };
-    // Safety net: if everything times out, resolve after 20s regardless
     const safetyTimer = setTimeout(() => {
       if (pending > 0) {
         setChip('err', '⚠ Timed out');
@@ -1210,8 +1169,15 @@ function fetchAll(manual) {
         resolveAll();
       }
     }, 20000);
-    const origResolveAll = resolveAll;
-    const wrappedResolveAll = () => { clearTimeout(safetyTimer); origResolveAll(); };
+    const maybeDone = () => {
+      if (pending <= 0) {
+        clearTimeout(safetyTimer);
+        if (!errors.length) { setChip('ok', '✓ Loaded'); if (manual) showToast('✅ Data loaded'); }
+        else { setChip('err', '⚠ Partial load'); showToast('⚠ Some data failed — press ↺ Load', false, true); }
+        setBtnState('load', false);
+        resolveAll();
+      }
+    };
 
     SNAMES.forEach(name => {
       SHIFTS.forEach((sh, si) => {
@@ -1228,7 +1194,6 @@ function fetchAll(manual) {
           });
       });
     });
-    // Fetch notes for note-enabled sections
     noteSections.forEach(name => {
       gasGetWithTimeout({ action: 'getShiftNotes', section: name, date: disp }, 12000)
         .then(res => {
@@ -1254,7 +1219,6 @@ function applyFetched(name, si, res, iso) {
   const id = sl(name);
   values.forEach((v, mi) => { if (v === '' || v === null || v === undefined) return; const el = inp(id, mi, si); if (el) el.value = v; });
   recalcAll(name); refreshDot(name);
-  // Debounce: run distribution rules after all shifts finish loading
   clearTimeout(window._distDebounce);
   window._distDebounce = setTimeout(() => runDistributionRules(), 250);
 }
@@ -1353,8 +1317,8 @@ function verifyAdmin() {
 let adminDraft = null;
 let adminActiveSec = null;
 let dragSrcIdx = null;
-let adminDistRules = [];  // working copy of distribution rules
-let adminNotesEnabled = {};  // working copy of notes-enabled map
+let adminDistRules = [];
+let adminNotesEnabled = {};
 
 function openAdmin() {
   adminDraft = {};
@@ -1366,7 +1330,6 @@ function openAdmin() {
       _originalName: name
     };
   });
-  // Deep-copy distribution rules
   adminDistRules = (DISTRIBUTION_RULES || []).map(r => ({
     id: r.id,
     name: r.name || '',
@@ -1376,7 +1339,6 @@ function openAdmin() {
     shifts: r.shifts ? [...r.shifts] : [0,1,2],
     ratios: r.ratios ? [...r.ratios] : []
   }));
-  // Deep-copy notes-enabled map
   adminNotesEnabled = Object.assign({}, NOTES_ENABLED);
   adminActiveSec = Object.keys(adminDraft)[0] || null;
   renderAdminSidebar();
@@ -1446,17 +1408,11 @@ function renderAdminContent(name) {
       </div>
     </div>
     <div style="margin-bottom:10px;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">
-        Section Name
-      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Section Name</div>
       <div class="admin-field-row">
         <input type="text" id="adminSecName" value="${name}" placeholder="Section name" style="font-weight:600;"/>
         <button class="btn btn-ghost btn-sm" onclick="renameSection('${escapeSingleQ(name)}')">Rename</button>
       </div>
-      ${!isNew ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;">
-        Original sheet name: <strong>${sec._originalName}</strong>
-        ${sec._originalName !== name ? ' → will be renamed to <strong>' + name + '</strong>' : ''}
-      </div>` : ''}
     </div>
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">
       Machines / Equipment <span style="opacity:.5;font-size:9px;">(drag to reorder)</span>
@@ -1479,7 +1435,6 @@ function renderAdminContent(name) {
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:4px;">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
         📝 Shift Notes / Remarks
-        <span style="font-size:9px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">Allow operators to add text remarks per machine per shift.</span>
       </div>
       <label class="admin-notes-toggle">
         <input type="checkbox" id="adminNotesToggle-${escapeSingleQ(name)}"
@@ -1487,7 +1442,7 @@ function renderAdminContent(name) {
           onchange="adminNotesEnabled['${escapeSingleQ(name)}'] = this.checked"/>
         <span style="flex:1;">
           <span style="display:block;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--text);">Enable Notes for this section</span>
-          <span style="display:block;font-size:11px;color:var(--muted);margin-top:1px;">A 📝 button appears on each machine row. Operators click it to type what they produced or any remarks. Notes are saved to Google Sheets and appear in exported reports.</span>
+          <span style="display:block;font-size:11px;color:var(--muted);margin-top:1px;">A 📝 button appears on each machine row.</span>
         </span>
         ${adminNotesEnabled[name] ? '<span class="note-badge">ENABLED</span>' : ''}
       </label>
@@ -1580,19 +1535,16 @@ function addLinkedGroup(name) {
   adminDraft[name].linkedGroups.push({ label: '', members: [] });
   renderLinkedGroups(name);
 }
-
 function deleteLinkedGroup(name, gi) {
   adminDraft[name].linkedGroups.splice(gi, 1);
   renderLinkedGroups(name);
   showToast('✅ Linked group removed');
 }
-
 function removeMachineFromGroup(name, gi, mname) {
   const g = adminDraft[name].linkedGroups[gi];
   g.members = g.members.filter(m => m !== mname);
   renderLinkedGroups(name);
 }
-
 function addMachineToGroup(name, gi) {
   const sel = document.getElementById(`lgadd-${gi}`);
   if (!sel || !sel.value) return;
@@ -1606,7 +1558,6 @@ function addMachineToGroup(name, gi) {
   }
   renderLinkedGroups(name);
 }
-
 function renameSection(oldName) {
   const newName = document.getElementById('adminSecName').value.trim();
   if (!newName || newName === oldName) return;
@@ -1625,7 +1576,6 @@ function renameSection(oldName) {
   renderAdminContent(newName);
   showToast('✅ Section renamed (save to apply)');
 }
-
 function addNewSection() {
   let base = 'New Section', name = base, i = 2;
   while (adminDraft[name]) { name = base + ' ' + i++; }
@@ -1635,11 +1585,10 @@ function addNewSection() {
   renderAdminContent(name);
   setTimeout(() => { const inp = document.getElementById('adminSecName'); inp?.focus(); inp?.select(); }, 50);
 }
-
 function confirmDeleteSection(name) {
   document.getElementById('confirmTitle').textContent = 'Delete Section';
   document.getElementById('confirmMsg').textContent =
-    `Are you sure you want to delete the section "${name}" and all its machines? This only removes it from the form — existing data in Google Sheets is NOT deleted.`;
+    `Are you sure you want to delete the section "${name}"? Existing data in Google Sheets is NOT deleted.`;
   document.getElementById('confirmOkBtn').textContent = 'Delete Section';
   document.getElementById('confirmOkBtn').onclick = () => { doDeleteSection(name); closeConfirm(); };
   document.getElementById('confirmModal').classList.add('show');
@@ -1654,7 +1603,6 @@ function doDeleteSection(name) {
   else document.getElementById('adminContent').innerHTML = '<div style="color:var(--muted);font-size:13px;margin-top:40px;text-align:center;">← Select a section to edit</div>';
   showToast('✅ Section deleted from form');
 }
-
 function setupDragDrop(name) {
   document.querySelectorAll('#adminMachineList .admin-machine-row').forEach(row => {
     row.addEventListener('dragstart', e => dragStart(e, +row.dataset.mi));
@@ -1687,12 +1635,7 @@ async function saveAdminChanges() {
   const saving = document.getElementById('adminSaving');
   const saveBtn = document.getElementById('adminSaveBtn');
   saving.textContent = '⏳ Saving to Google Sheets…';
-
-  // Show spinner in button
-  if (saveBtn) {
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="btn-spinner"></span> Saving…';
-  }
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<span class="btn-spinner"></span> Saving…'; }
   const cleaned = {}, renames = {};
   let warn = false;
   Object.entries(adminDraft).forEach(([currentName, v]) => {
@@ -1707,16 +1650,11 @@ async function saveAdminChanges() {
       .filter(g => g.members.length >= 2);
     cleaned[name] = { machines, uom: (v.uom || 'PCS').trim(), linkedGroups };
   });
-  if (warn) saving.textContent += ' (skipped empty sections)';
-  // Clean up distribution rules
   const cleanedRules = (adminDistRules || []).map(r => ({
-    id: r.id,
-    name: (r.name || '').trim(),
-    enabled: r.enabled !== false,
+    id: r.id, name: (r.name || '').trim(), enabled: r.enabled !== false,
     sources: (r.sources || []).filter(s => s.section && s.machine),
     targets: (r.targets || []).filter(t => t.section && t.machine),
-    shifts: (r.shifts || [0,1,2]),
-    ratios: (r.ratios || [])
+    shifts: (r.shifts || [0,1,2]), ratios: (r.ratios || [])
   })).filter(r => r.sources.length > 0 && r.targets.length > 0);
   try {
     const res = await gasPost({ action: 'saveSectionsConfig', sections: cleaned, renames, distributionRules: cleanedRules, notesEnabled: adminNotesEnabled });
@@ -1729,18 +1667,14 @@ async function saveAdminChanges() {
         });
       });
       Object.keys(baseline).forEach(k => { if (!cleaned[k]) delete baseline[k]; });
-      SECTIONS = cleaned;
-      DISTRIBUTION_RULES = cleanedRules;
+      SECTIONS = cleaned; DISTRIBUTION_RULES = cleanedRules;
       NOTES_ENABLED = Object.assign({}, adminNotesEnabled);
       SNAMES = Object.keys(SECTIONS);
       SNAMES.forEach(s => { if (!baseline[s]) baseline[s] = {}; });
-      rebuildMachineMap();
-      buildTabs(); buildPanels();
-      setActive(SNAMES[0]);
+      rebuildMachineMap(); buildTabs(); buildPanels(); setActive(SNAMES[0]);
       if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '💾 Save Changes'; }
       saving.textContent = '';
-      fetchAll(false);
-      closeAdmin();
+      fetchAll(false); closeAdmin();
       showToast('✅ Admin changes saved & applied!');
     } else {
       saving.textContent = '❌ Error: ' + (res?.error || 'Unknown');
@@ -1768,12 +1702,112 @@ function openExport() {
 }
 function closeExport() { document.getElementById('exportModal').classList.remove('show'); }
 
+// ── Archive all historical dates to Drive (one-time setup) ──
+async function triggerArchiveAll() {
+  const banner = document.getElementById('archiveBanner');
+  if (banner) banner.innerHTML = `<span>⏳ Archiving all dates to Drive… please wait (this may take 1–2 min)</span>`;
+  try {
+    const res = await gasPost({ action: 'archiveAllDates' });
+    if (banner) banner.innerHTML = res?.success
+      ? `<span style="color:var(--green);">✅ All historical dates archived! Future exports will be instant.</span>`
+      : `<span style="color:var(--red);">❌ Archive failed: ${res?.error || 'Unknown'}</span>`;
+  } catch(e) {
+    if (banner) banner.innerHTML = `<span style="color:var(--red);">❌ Network error: ${e.message}</span>`;
+  }
+}
+
+// ════════════════════════════════════════
+//  ★ PATCHED doExport — Drive-archive fast path
+// ════════════════════════════════════════
 async function doExport(fmt) {
   const from = document.getElementById('expDateFrom').value;
   const to   = document.getElementById('expDateTo').value;
   if (!from || !to) { showToast('⚠ Select a date range', false, true); return; }
   if (from > to)    { showToast('⚠ "From" must be ≤ "To"', false, true); return; }
   const isoDates = buildISODateRange(from, to);
+
+  document.getElementById('expBtns').style.display = 'none';
+  document.getElementById('expProgress').classList.add('show');
+  setProgressUI(5, 100, 'Checking Drive archive…');
+
+  try {
+    // ── Step 1: Batch fetch from Drive archive (fast JSON files) ──
+    const fromDisp = toDisp(from);
+    const toDispStr = toDisp(to);
+    const batchUrl = `${GAS_URL}?action=getExportBatch&from=${encodeURIComponent(fromDisp)}&to=${encodeURIComponent(toDispStr)}`;
+    const batchRes = await fetch(batchUrl);
+    const batch    = await batchRes.json();
+
+    const archiveData = batch.dates || {};
+    const missing     = batch.missing || [];
+
+    setProgressUI(30, 100, missing.length > 0
+      ? `Loading ${missing.length} uncached day(s) from sheet…`
+      : 'All data cached — building Excel…');
+
+    // ── Step 2: Fetch missing dates from live sheet ──────────────
+    if (missing.length > 0) {
+      const liveUrl = `${GAS_URL}?action=getExportLive&dates=${encodeURIComponent(JSON.stringify(missing))}`;
+      const liveRes = await fetch(liveUrl);
+      const live    = await liveRes.json();
+      Object.assign(archiveData, live);
+    }
+
+    // ── Step 3: Push all archive data into baseline[] for buildExcel() ──
+    Object.entries(archiveData).forEach(([disp, snap]) => {
+      if (!snap || !snap.sections) return;
+      const [dd, mm, yy] = disp.split('-');
+      const iso = `${yy}-${mm}-${dd}`;
+      Object.entries(snap.sections).forEach(([secName, secData]) => {
+        if (!secData || !secData.machines) return;
+        if (!baseline[secName]) baseline[secName] = {};
+        if (!baseline[secName][iso]) baseline[secName][iso] = {};
+        secData.machines.forEach((mrow, mi) => {
+          [0,1,2].forEach(si => {
+            if (!baseline[secName][iso][si]) baseline[secName][iso][si] = [];
+            const val = mrow['s' + (si + 1)];
+            baseline[secName][iso][si][mi] = (val !== null && val !== undefined) ? val : '';
+          });
+        });
+      });
+    });
+
+    setProgressUI(65, 100, 'Fetching notes…');
+
+    // ── Step 4: Fetch notes for note-enabled sections ────────────
+    const noteSections = SNAMES.filter(n => NOTES_ENABLED[n]);
+    if (noteSections.length) {
+      const noteFetches = [];
+      isoDates.forEach(iso => {
+        const disp = toDisp(iso);
+        noteSections.forEach(name => {
+          if (!notesCache[name]?.[disp]) {
+            noteFetches.push(
+              gasGet({ action: 'getShiftNotes', section: name, date: disp })
+                .then(res => { if (res?.notes) { if (!notesCache[name]) notesCache[name] = {}; notesCache[name][disp] = res.notes; } })
+                .catch(() => {})
+            );
+          }
+        });
+      });
+      if (noteFetches.length) await Promise.all(noteFetches);
+    }
+
+    setProgressUI(90, 100, 'Building Excel file…');
+    document.getElementById('expProgress').classList.remove('show');
+    document.getElementById('expBtns').style.display = '';
+    closeExport();
+    buildExcel(fmt, isoDates);
+
+  } catch(err) {
+    console.error('Export archive error, falling back:', err);
+    // Graceful fallback to old cell-by-cell method
+    await doExportFallback(fmt, isoDates);
+  }
+}
+
+// ── Fallback: original per-cell fetch if Drive archive unavailable ──
+async function doExportFallback(fmt, isoDates) {
   const curIso = curDate();
   SNAMES.forEach(name => {
     const id = sl(name);
@@ -1784,21 +1818,8 @@ async function doExport(fmt) {
   const missingDates = isoDates.filter(iso =>
     SNAMES.some(name => SHIFTS.some((_, si) => !Array.isArray(baseline[name]?.[iso]?.[si])))
   );
-  // Also figure out which dates need notes fetched
-  const noteSections = SNAMES.filter(n => NOTES_ENABLED[n]);
-  const datesNeedingNotes = noteSections.length
-    ? isoDates.filter(iso => {
-        const disp = toDisp(iso);
-        return noteSections.some(n => !notesCache[n]?.[disp]);
-      })
-    : [];
-  if (missingDates.length === 0 && datesNeedingNotes.length === 0) {
-    closeExport(); buildExcel(fmt, isoDates); return;
-  }
-  document.getElementById('expBtns').style.display = 'none';
-  document.getElementById('expProgress').classList.add('show');
   const totalWork = Math.max(missingDates.length, 1);
-  setProgressUI(0, totalWork);
+  setProgressUI(0, totalWork, 'Loading from sheet…');
   const BATCH_SIZE = 1;
   for (let di = 0; di < missingDates.length; di += BATCH_SIZE) {
     const batch = missingDates.slice(di, di + BATCH_SIZE);
@@ -1818,7 +1839,7 @@ async function doExport(fmt) {
     await Promise.all(calls);
     setProgressUI(Math.min(di + BATCH_SIZE, missingDates.length), totalWork);
   }
-  // Fetch notes for any dates not yet cached
+  const noteSections = SNAMES.filter(n => NOTES_ENABLED[n]);
   if (noteSections.length) {
     const noteFetches = [];
     isoDates.forEach(iso => {
@@ -1841,10 +1862,11 @@ async function doExport(fmt) {
   buildExcel(fmt, isoDates);
 }
 
-function setProgressUI(done, total) {
+// ── Updated setProgressUI — supports optional message param ──
+function setProgressUI(done, total, msg) {
   const pct = total > 0 ? Math.round(done / total * 100) : 0;
-  document.getElementById('expProgressMsg').textContent =
-    done >= total ? 'Done! Building Excel…' : `Loading day ${done} of ${total}… please wait`;
+  const defaultMsg = done >= total ? 'Done! Building Excel…' : `Loading day ${done} of ${total}… please wait`;
+  document.getElementById('expProgressMsg').textContent = msg || defaultMsg;
   document.getElementById('expProgressBar').style.width = pct + '%';
 }
 
@@ -1858,10 +1880,7 @@ function buildExcel(fmt, isoDates) {
 }
 
 // ════════════════════════════════════════
-//  minitable FORMAT  (format = 'xls' | 'xlsx')
-//  Notes appear as a "Remarks" row below each machine row.
-//  XLS  = HTML-table blob, fully styled, may not open on mobile.
-//  XLSX = SheetJS AOA, plain, opens everywhere.
+//  minitable FORMAT
 // ════════════════════════════════════════
 function buildminitable2(isoDates, format) {
   const from = document.getElementById('expDateFrom').value;
@@ -1870,7 +1889,6 @@ function buildminitable2(isoDates, format) {
   buildminitable2_xls(isoDates, from, to);
 }
 
-// ── minitable XLS (HTML-table styled blob) ─────────────────────────
 function buildminitable2_xls(isoDates, from, to) {
   let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Mini table Report</title><style>
   body{font-family:Calibri,Arial,sans-serif;margin:0;padding:0;}
@@ -1899,25 +1917,15 @@ function buildminitable2_xls(isoDates, from, to) {
     const mainMachines = mergedRows.filter(r => !sepIdxSet.has(r.machineIndices[0]));
     const sepMachines  = mergedRows.filter(r =>  sepIdxSet.has(r.machineIndices[0]));
     const notesOn = !!NOTES_ENABLED[name];
-    const colsPerDate = 4;  // Sh1, Sh2, Sh3, Total (notes go in separate rows)
-    const totalCols = 2 + isoDates.length * colsPerDate;
+    const totalCols = 2 + isoDates.length * 4;
 
     html += `<table cellspacing="0" cellpadding="0">`;
-
-    // Title row
     html += `<tr><td colspan="${totalCols}" class="sec-title">${name.toUpperCase()} PRODUCTION</td></tr>`;
-
-    // Date header row
     html += `<tr><td class="date-hdr"></td><td class="date-hdr"></td>`;
-    isoDates.forEach(iso => {
-      html += `<td colspan="4" class="date-hdr">${toDisp(iso)}</td>`;
-    });
+    isoDates.forEach(iso => { html += `<td colspan="4" class="date-hdr">${toDisp(iso)}</td>`; });
     html += `</tr>`;
-
-    // Column header row
     html += `<tr><td class="col-hdr">Machine Name</td><td class="col-hdr">UOM</td>`;
-    isoDates.forEach((_, idx) => {
-      const last = idx === isoDates.length - 1;
+    isoDates.forEach(() => {
       html += `<td class="col-hdr">Shift 1<br><span style="font-weight:normal;font-size:8.5pt;">(8hr:7am-3pm / 12hr:7am-7pm)</span></td>`;
       html += `<td class="col-hdr">Shift 2<br><span style="font-weight:normal;font-size:8.5pt;">(8hr:3pm-11pm / 12hr:7pm-7am)</span></td>`;
       html += `<td class="col-hdr">Shift 3<br><span style="font-weight:normal;font-size:8.5pt;">(8hr:11pm-7am)</span></td>`;
@@ -1925,24 +1933,20 @@ function buildminitable2_xls(isoDates, from, to) {
     });
     html += `</tr>`;
 
-    // Main machine rows
     mainMachines.forEach(({ displayName, machineIndices }) => {
-      // Data row
       html += `<tr><td class="mach">${displayName}</td><td class="uom">${uom}</td>`;
       isoDates.forEach(iso => {
-        let sa=null, sb=null, sc=null;
+        let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
-          const a=gv(name,iso,0,mi), b=gv(name,iso,1,mi), c=gv(name,iso,2,mi);
-          if(a!=='') sa=(sa||0)+parseFloat(a);
-          if(b!=='') sb=(sb||0)+parseFloat(b);
-          if(c!=='') sc=(sc||0)+parseFloat(c);
+          const a=gv(name,iso,0,mi),b=gv(name,iso,1,mi),c=gv(name,iso,2,mi);
+          if(a!=='')sa=(sa||0)+parseFloat(a);
+          if(b!=='')sb=(sb||0)+parseFloat(b);
+          if(c!=='')sc=(sc||0)+parseFloat(c);
         });
         const tot=(sa||0)+(sb||0)+(sc||0);
         html += `<td class="data">${sa!==null?sa:''}</td><td class="data">${sb!==null?sb:''}</td><td class="data">${sc!==null?sc:''}</td><td class="data">${tot}</td>`;
       });
       html += `</tr>`;
-
-      // Remarks row (always emit when notesOn, skip if all empty)
       if (notesOn) {
         const hasAnyNote = isoDates.some(iso => {
           const disp = toDisp(iso);
@@ -1952,9 +1956,9 @@ function buildminitable2_xls(isoDates, from, to) {
           html += `<tr><td class="remark-label">Remarks</td><td class="remark-empty"></td>`;
           isoDates.forEach(iso => {
             const disp = toDisp(iso);
-            const n0 = machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
-            const n1 = machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
-            const n2 = machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
+            const n0=machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
+            const n1=machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
+            const n2=machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
             html += `<td class="remark-val">${n0}</td><td class="remark-val">${n1}</td><td class="remark-val">${n2}</td><td class="remark-empty"></td>`;
           });
           html += `</tr>`;
@@ -1962,11 +1966,10 @@ function buildminitable2_xls(isoDates, from, to) {
       }
     });
 
-    // Total row
     html += `<tr><td class="tot-lbl"></td><td class="tot-uom">TOTAL :-</td>`;
     isoDates.forEach(iso => {
-      let cSa=0, cSb=0, cSc=0;
-      mainMachines.forEach(({machineIndices}) => machineIndices.forEach(mi => {
+      let cSa=0,cSb=0,cSc=0;
+      mainMachines.forEach(({machineIndices})=>machineIndices.forEach(mi=>{
         cSa+=parseFloat(gv(name,iso,0,mi))||0;
         cSb+=parseFloat(gv(name,iso,1,mi))||0;
         cSc+=parseFloat(gv(name,iso,2,mi))||0;
@@ -1975,22 +1978,20 @@ function buildminitable2_xls(isoDates, from, to) {
     });
     html += `</tr>`;
 
-    // Separator machines
     sepMachines.forEach(({ displayName, machineIndices }) => {
       html += `<tr><td class="sep-mach">${displayName}</td><td class="uom">${uom}</td>`;
       isoDates.forEach(iso => {
-        let sa=null, sb=null, sc=null;
+        let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
-          const a=gv(name,iso,0,mi), b=gv(name,iso,1,mi), c=gv(name,iso,2,mi);
-          if(a!=='') sa=(sa||0)+parseFloat(a);
-          if(b!=='') sb=(sb||0)+parseFloat(b);
-          if(c!=='') sc=(sc||0)+parseFloat(c);
+          const a=gv(name,iso,0,mi),b=gv(name,iso,1,mi),c=gv(name,iso,2,mi);
+          if(a!=='')sa=(sa||0)+parseFloat(a);
+          if(b!=='')sb=(sb||0)+parseFloat(b);
+          if(c!=='')sc=(sc||0)+parseFloat(c);
         });
         const tot=(sa||0)+(sb||0)+(sc||0);
         html += `<td class="sep-data">${sa!==null?sa:''}</td><td class="sep-data">${sb!==null?sb:''}</td><td class="sep-data">${sc!==null?sc:''}</td><td class="sep-data">${tot}</td>`;
       });
       html += `</tr>`;
-
       if (notesOn) {
         const hasAnyNote = isoDates.some(iso => {
           const disp = toDisp(iso);
@@ -2000,21 +2001,19 @@ function buildminitable2_xls(isoDates, from, to) {
           html += `<tr><td class="remark-label">Remarks</td><td class="remark-empty"></td>`;
           isoDates.forEach(iso => {
             const disp = toDisp(iso);
-            const n0 = machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
-            const n1 = machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
-            const n2 = machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
+            const n0=machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
+            const n1=machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
+            const n2=machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
             html += `<td class="remark-val">${n0}</td><td class="remark-val">${n1}</td><td class="remark-val">${n2}</td><td class="remark-empty"></td>`;
           });
           html += `</tr>`;
         }
       }
     });
-
     html += `</table>`;
   });
 
   html += `</body></html>`;
-
   const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
   const fname = from === to
     ? `Production_Report_${toDisp(from).replace(/-/g,'_')}.xls`
@@ -2024,15 +2023,13 @@ function buildminitable2_xls(isoDates, from, to) {
   a.href = url; a.download = fname;
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
-  showToast(`📥 Production report has been downloaded in mini-table format (XLS)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
+  showToast(`📥 Downloaded in mini-table format (XLS)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
-// ── minitable XLSX (SheetJS AOA, no styling, universal) ────────────
 function buildminitable2_xlsx(isoDates, from, to) {
   const wb = XLSX.utils.book_new();
   const rows = [];
   const merges = [];
-
   let rowIdx = 0;
 
   SNAMES.forEach(name => {
@@ -2045,68 +2042,58 @@ function buildminitable2_xlsx(isoDates, from, to) {
     const notesOn = !!NOTES_ENABLED[name];
     const totalCols = 2 + isoDates.length * 4;
 
-    // Section title row
     const titleRow = [name.toUpperCase() + ' PRODUCTION'];
     for (let i=1;i<totalCols;i++) titleRow.push('');
     rows.push(titleRow);
     merges.push({ s:{r:rowIdx,c:0}, e:{r:rowIdx,c:totalCols-1} });
     rowIdx++;
 
-    // Date header row
     const dateRow = ['',''];
     isoDates.forEach(iso => { dateRow.push(toDisp(iso),'','',''); });
     rows.push(dateRow);
-    isoDates.forEach((_,di) => {
-      merges.push({ s:{r:rowIdx,c:2+di*4}, e:{r:rowIdx,c:2+di*4+3} });
-    });
+    isoDates.forEach((_,di) => { merges.push({ s:{r:rowIdx,c:2+di*4}, e:{r:rowIdx,c:2+di*4+3} }); });
     rowIdx++;
 
-    // Column header row
     const hdr = ['Machine Name','UOM'];
-    isoDates.forEach(() => {
-      hdr.push('Shift 1 (8hr:7am-3pm/12hr:7am-7pm)','Shift 2 (8hr:3pm-11pm/12hr:7pm-7am)','Shift 3 (8hr:11pm-7am)','Total');
-    });
+    isoDates.forEach(() => { hdr.push('Shift 1 (8hr:7am-3pm/12hr:7am-7pm)','Shift 2 (8hr:3pm-11pm/12hr:7pm-7am)','Shift 3 (8hr:11pm-7am)','Total'); });
     rows.push(hdr); rowIdx++;
 
-    // Main machine rows
     mainMachines.forEach(({ displayName, machineIndices }) => {
       const row = [displayName, uom];
       isoDates.forEach(iso => {
-        let sa=null, sb=null, sc=null;
+        let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
-          const a=gv(name,iso,0,mi), b=gv(name,iso,1,mi), c=gv(name,iso,2,mi);
-          if(a!=='') sa=(sa||0)+parseFloat(a);
-          if(b!=='') sb=(sb||0)+parseFloat(b);
-          if(c!=='') sc=(sc||0)+parseFloat(c);
+          const a=gv(name,iso,0,mi),b=gv(name,iso,1,mi),c=gv(name,iso,2,mi);
+          if(a!=='')sa=(sa||0)+parseFloat(a);
+          if(b!=='')sb=(sb||0)+parseFloat(b);
+          if(c!=='')sc=(sc||0)+parseFloat(c);
         });
-        row.push(sa!==null?sa:'', sb!==null?sb:'', sc!==null?sc:'', (sa||0)+(sb||0)+(sc||0));
+        row.push(sa!==null?sa:'',sb!==null?sb:'',sc!==null?sc:'',(sa||0)+(sb||0)+(sc||0));
       });
       rows.push(row); rowIdx++;
-
       if (notesOn) {
         const hasAnyNote = isoDates.some(iso => {
-          const disp = toDisp(iso);
-          return machineIndices.some(mi => [0,1,2].some(si => getNote(name,disp,si,mi)));
+          const disp=toDisp(iso);
+          return machineIndices.some(mi=>[0,1,2].some(si=>getNote(name,disp,si,mi)));
         });
         if (hasAnyNote) {
-          const rmk = ['Remarks', ''];
+          const rmk=['Remarks',''];
           isoDates.forEach(iso => {
-            const disp = toDisp(iso);
-            const n0 = machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
-            const n1 = machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
-            const n2 = machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
-            rmk.push(n0, n1, n2, '');
+            const disp=toDisp(iso);
+            const n0=machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
+            const n1=machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
+            const n2=machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
+            rmk.push(n0,n1,n2,'');
           });
           rows.push(rmk); rowIdx++;
         }
       }
     });
 
-    // Total row
-    const totRow = ['', 'TOTAL :-'];
+    const totRow=['','TOTAL :-'];
     isoDates.forEach(iso => {
       let cSa=0,cSb=0,cSc=0;
-      mainMachines.forEach(({machineIndices}) => machineIndices.forEach(mi => {
+      mainMachines.forEach(({machineIndices})=>machineIndices.forEach(mi=>{
         cSa+=parseFloat(gv(name,iso,0,mi))||0;
         cSb+=parseFloat(gv(name,iso,1,mi))||0;
         cSc+=parseFloat(gv(name,iso,2,mi))||0;
@@ -2115,54 +2102,49 @@ function buildminitable2_xlsx(isoDates, from, to) {
     });
     rows.push(totRow); rowIdx++;
 
-    // Separator machines
     sepMachines.forEach(({ displayName, machineIndices }) => {
-      const row = [displayName, uom];
+      const row=[displayName,uom];
       isoDates.forEach(iso => {
-        let sa=null, sb=null, sc=null;
+        let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
-          const a=gv(name,iso,0,mi), b=gv(name,iso,1,mi), c=gv(name,iso,2,mi);
-          if(a!=='') sa=(sa||0)+parseFloat(a);
-          if(b!=='') sb=(sb||0)+parseFloat(b);
-          if(c!=='') sc=(sc||0)+parseFloat(c);
+          const a=gv(name,iso,0,mi),b=gv(name,iso,1,mi),c=gv(name,iso,2,mi);
+          if(a!=='')sa=(sa||0)+parseFloat(a);
+          if(b!=='')sb=(sb||0)+parseFloat(b);
+          if(c!=='')sc=(sc||0)+parseFloat(c);
         });
-        row.push(sa!==null?sa:'', sb!==null?sb:'', sc!==null?sc:'', (sa||0)+(sb||0)+(sc||0));
+        row.push(sa!==null?sa:'',sb!==null?sb:'',sc!==null?sc:'',(sa||0)+(sb||0)+(sc||0));
       });
       rows.push(row); rowIdx++;
-
       if (notesOn) {
-        const hasAnyNote = isoDates.some(iso => {
-          const disp = toDisp(iso);
-          return machineIndices.some(mi => [0,1,2].some(si => getNote(name,disp,si,mi)));
+        const hasAnyNote=isoDates.some(iso=>{
+          const disp=toDisp(iso);
+          return machineIndices.some(mi=>[0,1,2].some(si=>getNote(name,disp,si,mi)));
         });
         if (hasAnyNote) {
-          const rmk = ['Remarks', ''];
-          isoDates.forEach(iso => {
-            const disp = toDisp(iso);
-            const n0 = machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
-            const n1 = machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
-            const n2 = machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
-            rmk.push(n0, n1, n2, '');
+          const rmk=['Remarks',''];
+          isoDates.forEach(iso=>{
+            const disp=toDisp(iso);
+            const n0=machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
+            const n1=machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
+            const n2=machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
+            rmk.push(n0,n1,n2,'');
           });
           rows.push(rmk); rowIdx++;
         }
       }
     });
-
-    // Blank spacer row between sections
     rows.push([]); rowIdx++;
   });
 
   const ws = XLSX.utils.aoa_to_sheet(rows);
   ws['!merges'] = merges;
-  const totalCols = 2 + isoDates.length * 4;
   ws['!cols'] = [{wch:28},{wch:7},...isoDates.flatMap(()=>[{wch:12},{wch:12},{wch:12},{wch:10}])];
   XLSX.utils.book_append_sheet(wb, ws, 'Production Report');
-  const fname = from === to
+  const fname = from===to
     ? `Production_Report_${toDisp(from).replace(/-/g,'_')}.xlsx`
     : `Production_Report_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb, fname);
-  showToast(`📥 Production report has been downloaded in mini-table format (XLSX)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
+  showToast(`📥 Downloaded in mini-table format (XLSX)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 // ════════════════════════════════════════
@@ -2173,38 +2155,25 @@ function buildALPHABETICAL(isoDates) {
   function bdr(){const b={style:'thin',color:{rgb:BORDER_C}};return{top:b,bottom:b,left:b,right:b};}
   function sDateHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
   function sShiftHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:10,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:STEEL}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function sNoteHdr(){return{font:{bold:true,color:{rgb:'FF806000'},sz:10,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:'FFFFFBEA'}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
   function sMachineCell(){return{font:{bold:true,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:GREY_BG}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()};}
   function sHeaderLabel(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()};}
   function sData(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function sNote(){return{font:{italic:true,color:{rgb:'FF806000'},sz:9,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:'FFFFFBEA'}},alignment:{horizontal:'left',vertical:'center',wrapText:true},border:bdr()};}
   function put(ws,r,c,v,s,t){const addr=XLSX.utils.encode_cell({r:r-1,c:c-1});ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s};}
   const machines=getALPHABETICALMachineList(),ws={},merges=[];
-  // For ALPHABETICAL: cols = 1 machine col + per date: 3 shifts + (if any note-enabled section has this machine: 3 note cols)
-  // Simple approach: add 3 note cols per date at end of each date group for machines in note-enabled sections
-  const anyNotesOn = false;
-  const colsPerDate = anyNotesOn ? 6 : 3;
+  const colsPerDate=3;
   const rowHts=[{hpt:22},{hpt:18}];machines.forEach(()=>rowHts.push({hpt:18}));
   const colWidths=[{wch:26}];
-  isoDates.forEach(()=>{
-    colWidths.push({wch:10},{wch:10},{wch:10});
-    if(anyNotesOn) colWidths.push({wch:28},{wch:28},{wch:28});
-  });
+  isoDates.forEach(()=>{ colWidths.push({wch:10},{wch:10},{wch:10}); });
   put(ws,1,1,'Date',sHeaderLabel());
   isoDates.forEach((iso,di)=>{
     const disp=toDisp(iso),bc=2+di*colsPerDate;
     put(ws,1,bc,disp,sDateHdr());put(ws,1,bc+1,'',sDateHdr());put(ws,1,bc+2,'',sDateHdr());
     merges.push({s:{r:0,c:bc-1},e:{r:0,c:bc+1}});
-    if(anyNotesOn){
-      put(ws,1,bc+3,'Notes',sNoteHdr());put(ws,1,bc+4,'',sNoteHdr());put(ws,1,bc+5,'',sNoteHdr());
-      merges.push({s:{r:0,c:bc+2},e:{r:0,c:bc+4}});
-    }
   });
   put(ws,2,1,'Machine Name',sShiftHdr());
   isoDates.forEach((_,di)=>{
     const bc=2+di*colsPerDate;
     put(ws,2,bc,'Shift 1',sShiftHdr());put(ws,2,bc+1,'Shift 2',sShiftHdr());put(ws,2,bc+2,'Shift 3',sShiftHdr());
-    if(anyNotesOn){put(ws,2,bc+3,'Sh1 Note',sNoteHdr());put(ws,2,bc+4,'Sh2 Note',sNoteHdr());put(ws,2,bc+5,'Sh3 Note',sNoteHdr());}
   });
   machines.forEach((mname,mIdx)=>{
     const row=3+mIdx;put(ws,row,1,mname,sMachineCell());
@@ -2212,18 +2181,10 @@ function buildALPHABETICAL(isoDates) {
       const bc=2+di*colsPerDate,lookup=MACHINE_SECTION_MAP[mname];
       if(!lookup){
         put(ws,row,bc,'',sData());put(ws,row,bc+1,'',sData());put(ws,row,bc+2,'',sData());
-        if(anyNotesOn){put(ws,row,bc+3,'',sNote());put(ws,row,bc+4,'',sNote());put(ws,row,bc+5,'',sNote());}
         return;
       }
       const{section,machineIdx}=lookup;
       SHIFTS.forEach((_,si)=>{const raw=gv(section,iso,si,machineIdx),val=raw!==''?parseFloat(raw):'';put(ws,row,bc+si,val,sData(),typeof val==='number'?'n':'s');});
-      if(anyNotesOn){
-        const disp=toDisp(iso);
-        SHIFTS.forEach((_,si)=>{
-          const note = NOTES_ENABLED[section] ? getNote(section,disp,si,machineIdx) : '';
-          put(ws,row,bc+3+si,note,sNote());
-        });
-      }
     });
   });
   const lastCol=1+isoDates.length*colsPerDate,lastRow=2+machines.length;
@@ -2232,7 +2193,7 @@ function buildALPHABETICAL(isoDates) {
   const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
   const fname=from===to?`Production_${toDisp(from).replace(/-/g,'_')}.xlsx`:`Production_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb,fname,{bookType:'xlsx',cellStyles:true});
-  showToast(`📥 Production data has been exported in Alphabetical! (${isoDates.length} date${isoDates.length>1?'s':''})`);
+  showToast(`📥 Exported in Alphabetical format! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 // ════════════════════════════════════════
@@ -2240,7 +2201,6 @@ function buildALPHABETICAL(isoDates) {
 // ════════════════════════════════════════
 function buildSheetwise(isoDates) {
   const wb = XLSX.utils.book_new();
-  const NOTE_BG = 'FFFFFBEA'; // light yellow for note rows
   SNAMES.forEach(name => {
     const sec = SECTIONS[name], rows = [];
     const notesOn = !!NOTES_ENABLED[name];
@@ -2248,13 +2208,9 @@ function buildSheetwise(isoDates) {
     const mergedRows = getMergedMachineRows(name);
     const mainMachines = mergedRows.filter(r => !sepIdxSet.has(r.machineIndices[0]));
     const sepMachines  = mergedRows.filter(r =>  sepIdxSet.has(r.machineIndices[0]));
-    // Each date group = 3 shift cols; if notes on, add 3 note cols after
     const colsPerDate = notesOn ? 6 : 3;
     const h1 = ['Machine','UOM'];
-    isoDates.forEach(d => {
-      h1.push(toDisp(d),'','');
-      if (notesOn) h1.push('Notes','','');
-    });
+    isoDates.forEach(d => { h1.push(toDisp(d),'',''); if (notesOn) h1.push('Notes','',''); });
     rows.push(h1);
     const h2 = ['',''];
     isoDates.forEach(() => {
@@ -2262,72 +2218,70 @@ function buildSheetwise(isoDates) {
       if (notesOn) h2.push('Shift 1 Note','Shift 2 Note','Shift 3 Note');
     });
     rows.push(h2);
-    mainMachines.forEach(({displayName, machineIndices}) => {
-      const row = [displayName, sec.uom];
+    mainMachines.forEach(({displayName,machineIndices}) => {
+      const row=[displayName,sec.uom];
       isoDates.forEach(d => {
-        SHIFTS.forEach((_,si) => {
-          let sum = null;
-          machineIndices.forEach(mi => { const v=gv(name,d,si,mi); if(v!=='') sum=(sum||0)+(+v); });
+        SHIFTS.forEach((_,si)=>{
+          let sum=null;
+          machineIndices.forEach(mi=>{const v=gv(name,d,si,mi);if(v!=='')sum=(sum||0)+(+v);});
           row.push(sum!==null?sum:'');
         });
         if (notesOn) {
-          SHIFTS.forEach((_,si) => {
-            const disp = toDisp(d);
-            // Combine notes from all machineIndices
-            const note = machineIndices.map(mi => getNote(name, disp, si, mi)).filter(Boolean).join(' / ');
+          SHIFTS.forEach((_,si)=>{
+            const disp=toDisp(d);
+            const note=machineIndices.map(mi=>getNote(name,disp,si,mi)).filter(Boolean).join(' / ');
             row.push(note);
           });
         }
       });
       rows.push(row);
     });
-    const tr = ['TOTAL', ''];
-    isoDates.forEach(d => {
-      SHIFTS.forEach((_,si) => {
-        let s = 0;
-        mainMachines.forEach(({machineIndices}) => machineIndices.forEach(mi => s+=(+gv(name,d,si,mi)||0)));
+    const tr=['TOTAL',''];
+    isoDates.forEach(d=>{
+      SHIFTS.forEach((_,si)=>{
+        let s=0;
+        mainMachines.forEach(({machineIndices})=>machineIndices.forEach(mi=>s+=(+gv(name,d,si,mi)||0)));
         tr.push(s||'');
       });
-      if (notesOn) SHIFTS.forEach(() => tr.push(''));
+      if (notesOn) SHIFTS.forEach(()=>tr.push(''));
     });
     rows.push(tr);
-    sepMachines.forEach(({displayName, machineIndices}) => {
-      const row = [displayName, sec.uom];
-      isoDates.forEach(d => {
-        SHIFTS.forEach((_,si) => {
-          let sum = null;
-          machineIndices.forEach(mi => { const v=gv(name,d,si,mi); if(v!=='') sum=(sum||0)+(+v); });
+    sepMachines.forEach(({displayName,machineIndices})=>{
+      const row=[displayName,sec.uom];
+      isoDates.forEach(d=>{
+        SHIFTS.forEach((_,si)=>{
+          let sum=null;
+          machineIndices.forEach(mi=>{const v=gv(name,d,si,mi);if(v!=='')sum=(sum||0)+(+v);});
           row.push(sum!==null?sum:'');
         });
         if (notesOn) {
-          SHIFTS.forEach((_,si) => {
-            const disp = toDisp(d);
-            const note = machineIndices.map(mi => getNote(name, disp, si, mi)).filter(Boolean).join(' / ');
+          SHIFTS.forEach((_,si)=>{
+            const disp=toDisp(d);
+            const note=machineIndices.map(mi=>getNote(name,disp,si,mi)).filter(Boolean).join(' / ');
             row.push(note);
           });
         }
       });
       rows.push(row);
     });
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    // Merges: date header spans 3 data cols; if notes, also 3 note cols
-    ws['!merges'] = isoDates.flatMap((_,di) => {
-      const base = 2 + di * colsPerDate;
-      const m = [{s:{r:0,c:base},e:{r:0,c:base+2}}];
-      if (notesOn) m.push({s:{r:0,c:base+3},e:{r:0,c:base+5}});
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!merges']=isoDates.flatMap((_,di)=>{
+      const base=2+di*colsPerDate;
+      const m=[{s:{r:0,c:base},e:{r:0,c:base+2}}];
+      if(notesOn)m.push({s:{r:0,c:base+3},e:{r:0,c:base+5}});
       return m;
     });
-    let swMaxMachine = 8;
-    sec.machines.forEach(m => { if(m.length > swMaxMachine) swMaxMachine = m.length; });
-    const swShiftW = [41, 42, 24];
-    const noteColW = notesOn ? [28, 28, 28] : [];
-    ws['!cols'] = [{wch:swMaxMachine+2},{wch:6},...isoDates.flatMap(()=>[...swShiftW.map(w=>({wch:w+2})),...noteColW.map(w=>({wch:w}))])];
-    ws['!rows'] = [{hpt:18},{hpt:18}];
-    XLSX.utils.book_append_sheet(wb, ws, name.substring(0,31));
+    let swMaxMachine=8;
+    sec.machines.forEach(m=>{if(m.length>swMaxMachine)swMaxMachine=m.length;});
+    const swShiftW=[41,42,24];
+    const noteColW=notesOn?[28,28,28]:[];
+    ws['!cols']=[{wch:swMaxMachine+2},{wch:6},...isoDates.flatMap(()=>[...swShiftW.map(w=>({wch:w+2})),...noteColW.map(w=>({wch:w}))])];
+    ws['!rows']=[{hpt:18},{hpt:18}];
+    XLSX.utils.book_append_sheet(wb,ws,name.substring(0,31));
   });
   const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
   const fname=from===to?`production_sheetwise_${toDisp(from).replace(/-/g,'_')}.xlsx`:`production_sheetwise_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
-  XLSX.writeFile(wb, fname);
+  XLSX.writeFile(wb,fname);
   showToast(`📥 Sheet-wise exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
@@ -2411,7 +2365,6 @@ function showToast(msg,isErr=false,isWarn=false){
 // ════════════════════════════════════════
 //  MERGE & DISTRIBUTE — ADMIN UI
 // ════════════════════════════════════════
-
 function adminSelectDistribute() {
   adminActiveSec = '__dist__';
   renderAdminSidebar();
@@ -2427,10 +2380,10 @@ function renderDistributeContent() {
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">
       Each rule merges the total of selected <strong>source machines</strong> and distributes it to
-      <strong>target machines × selected shifts</strong> using a ratio. The total cells = targets × active shifts.
+      <strong>target machines × selected shifts</strong> using a ratio.
     </div>
     <div id="distRulesList">
-      ${rules.length === 0 ? '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No rules yet. Click below to add one.</div>' : rules.map((r, ri) => buildDistRuleCard(r, ri)).join('')}
+      ${rules.length === 0 ? '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">No rules yet.</div>' : rules.map((r, ri) => buildDistRuleCard(r, ri)).join('')}
     </div>
     <button class="btn btn-admin btn-sm" onclick="addDistRule()" style="width:100%;justify-content:center;margin-top:4px;">+ Add Merge &amp; Distribute Rule</button>
   `;
@@ -2442,19 +2395,13 @@ function buildDistRuleCard(rule, ri) {
   const ratios = rule.ratios || [];
   const targets = rule.targets || [];
   const sources = rule.sources || [];
-
-  // Build ratio inputs — one per target machine
   const ratioInputs = targets.map((t, ti) => {
     const val = ratios[ti] !== undefined ? ratios[ti] : 1;
-    return `<input class="dist-ratio-input" type="number" min="0.01" step="any"
-      value="${val}"
+    return `<input class="dist-ratio-input" type="number" min="0.01" step="any" value="${val}"
       oninput="adminDistRules[${ri}].ratios[${ti}]=parseFloat(this.value)||1;updateDistPreview(${ri})"
       title="${t.machine}" style="width:44px;"/>`;
   }).join('<span class="dist-ratio-sep"> : </span>');
-
-  // Preview line
   const preview = buildDistPreviewText(rule);
-
   return `
   <div class="dist-rule-card${rule.enabled ? ' active-rule' : ''}" id="distCard-${ri}">
     <button class="dist-del-btn" onclick="deleteDistRule(${ri})" title="Delete rule">&#x2715;</button>
@@ -2465,16 +2412,11 @@ function buildDistRuleCard(rule, ri) {
         style="background:transparent;border:none;border-bottom:1px dashed var(--border2);color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;outline:none;padding:1px 3px;width:160px;"
         oninput="adminDistRules[${ri}].name=this.value"/>
     </div>
-
     <div class="dist-half">
-      <!-- SOURCE MACHINES -->
       <div>
-        <div class="dist-section-label" style="color:var(--accent);">&#9650; Source Machines (merge total)</div>
+        <div class="dist-section-label" style="color:var(--accent);">&#9650; Source Machines</div>
         <div class="dist-machine-chips" id="distSrc-${ri}">
-          ${sources.map((s, si) => `
-            <span class="dist-chip src">${s.section}: ${s.machine}
-              <button class="rm" onclick="removeDistSrc(${ri},${si})">&#x2715;</button>
-            </span>`).join('')}
+          ${sources.map((s, si) => `<span class="dist-chip src">${s.section}: ${s.machine}<button class="rm" onclick="removeDistSrc(${ri},${si})">&#x2715;</button></span>`).join('')}
         </div>
         <div class="dist-add-row">
           <select id="distSrcSel-${ri}">
@@ -2484,15 +2426,10 @@ function buildDistRuleCard(rule, ri) {
           <button class="btn btn-accent btn-sm" onclick="addDistSrc(${ri})">Add</button>
         </div>
       </div>
-
-      <!-- TARGET MACHINES -->
       <div>
-        <div class="dist-section-label" style="color:var(--blue);">&#9660; Target Machines (receive distribution)</div>
+        <div class="dist-section-label" style="color:var(--blue);">&#9660; Target Machines</div>
         <div class="dist-machine-chips" id="distTgt-${ri}">
-          ${targets.map((t, ti) => `
-            <span class="dist-chip tgt">${t.section}: ${t.machine}
-              <button class="rm" onclick="removeDistTgt(${ri},${ti})">&#x2715;</button>
-            </span>`).join('')}
+          ${targets.map((t, ti) => `<span class="dist-chip tgt">${t.section}: ${t.machine}<button class="rm" onclick="removeDistTgt(${ri},${ti})">&#x2715;</button></span>`).join('')}
         </div>
         <div class="dist-add-row">
           <select id="distTgtSel-${ri}">
@@ -2503,459 +2440,321 @@ function buildDistRuleCard(rule, ri) {
         </div>
       </div>
     </div>
-
-    <!-- SHIFTS -->
-    <div class="dist-section-label">Active Shifts (distribution applies per-shift to target machines)</div>
+    <div class="dist-section-label">Active Shifts</div>
     <div class="dist-shifts-row" style="margin-bottom:8px;">
-      ${[0,1,2].map(si => `
-        <label class="dist-shift-check">
-          <input type="checkbox" ${shifts.includes(si)?'checked':''}
-            onchange="toggleDistShift(${ri},${si},this.checked);updateDistPreview(${ri})"/>
-          Shift ${si+1}
-        </label>`).join('')}
+      ${[0,1,2].map(si => `<label class="dist-shift-check"><input type="checkbox" ${shifts.includes(si)?'checked':''}
+        onchange="toggleDistShift(${ri},${si},this.checked);updateDistPreview(${ri})"/> Shift ${si+1}</label>`).join('')}
     </div>
-
-    <!-- RATIO -->
     ${targets.length >= 2 ? `
-    <div class="dist-section-label">Distribution Ratio (one number per target machine)</div>
+    <div class="dist-section-label">Distribution Ratio</div>
     <div class="dist-ratio-row">
       <span class="dist-ratio-label">Ratio:</span>
       ${ratioInputs}
       <button class="btn btn-ghost btn-sm" onclick="equalizeDistRatios(${ri})" style="font-size:10px;">Equalize</button>
     </div>` : ''}
-
-    <!-- ENABLED TOGGLE -->
     <div class="dist-enabled-toggle">
-      <input type="checkbox" id="distEn-${ri}" ${rule.enabled ? 'checked' : ''}
+      <input type="checkbox" id="distEn-${ri}" ${rule.enabled?'checked':''}
         onchange="adminDistRules[${ri}].enabled=this.checked;renderDistributeContent()"/>
-      <label for="distEn-${ri}">Rule enabled (auto-distributes when source data changes)</label>
+      <label for="distEn-${ri}">Rule enabled</label>
     </div>
-
     ${preview ? `<div class="dist-preview-banner">${preview}</div>` : ''}
   </div>`;
 }
 
 function getAllSectionMachineOptions() {
   const opts = [];
-  // Use adminDraft if available (admin is open), else SECTIONS
   const secs = adminDraft || SECTIONS;
   Object.entries(secs).forEach(([secName, sec]) => {
-    const machines = sec.machines || [];
-    machines.forEach(m => opts.push({ section: secName, machine: m }));
+    (sec.machines || []).forEach(m => opts.push({ section: secName, machine: m }));
   });
   return opts;
 }
 
 function buildDistPreviewText(rule) {
-  const sources = rule.sources || [];
-  const targets = rule.targets || [];
-  const shifts = rule.shifts || [];
-  const ratios = rule.ratios || [];
-  if (!sources.length || !targets.length || !shifts.length) return '';
-  const totalCells = targets.length * shifts.length;
-  const totalRatio = targets.reduce((s, _, ti) => s + (parseFloat(ratios[ti]) || 1), 0);
-  const parts = targets.map((t, ti) => {
-    const r = parseFloat(ratios[ti]) || 1;
-    const pct = totalRatio > 0 ? Math.round(r / totalRatio * 100) : 0;
+  const sources=rule.sources||[],targets=rule.targets||[],shifts=rule.shifts||[],ratios=rule.ratios||[];
+  if(!sources.length||!targets.length||!shifts.length) return '';
+  const totalRatio=targets.reduce((s,_,ti)=>s+(parseFloat(ratios[ti])||1),0);
+  const parts=targets.map((t,ti)=>{
+    const r=parseFloat(ratios[ti])||1;
+    const pct=totalRatio>0?Math.round(r/totalRatio*100):0;
     return `${t.machine} → ${pct}% ÷ ${shifts.length} shifts`;
   });
-  return `&#x2139; Total of ${sources.length} source machine${sources.length>1?'s':''} &divide; ${totalCells} cells (${targets.length} targets &times; ${shifts.length} shifts) with ratio ${targets.map((_,ti)=>ratios[ti]||1).join(':')}. ${parts.join(' | ')}`;
+  return `&#x2139; ${sources.length} source(s) → ${targets.length} targets × ${shifts.length} shifts. ${parts.join(' | ')}`;
 }
 
 function updateDistPreview(ri) {
-  const card = document.getElementById(`distCard-${ri}`);
-  if (!card) return;
-  const banner = card.querySelector('.dist-preview-banner');
-  const text = buildDistPreviewText(adminDistRules[ri]);
-  if (banner) { banner.innerHTML = text || ''; banner.style.display = text ? '' : 'none'; }
+  const card=document.getElementById(`distCard-${ri}`);
+  if(!card)return;
+  const banner=card.querySelector('.dist-preview-banner');
+  const text=buildDistPreviewText(adminDistRules[ri]);
+  if(banner){banner.innerHTML=text||'';banner.style.display=text?'':'none';}
 }
 
 function addDistRule() {
-  if (!adminDistRules) adminDistRules = [];
-  adminDistRules.push({
-    id: 'rule_' + Date.now(),
-    name: '',
-    enabled: true,
-    sources: [],
-    targets: [],
-    shifts: [0, 1, 2],
-    ratios: []
-  });
-  renderDistributeContent();
-  renderAdminSidebar();
+  if(!adminDistRules) adminDistRules=[];
+  adminDistRules.push({id:'rule_'+Date.now(),name:'',enabled:true,sources:[],targets:[],shifts:[0,1,2],ratios:[]});
+  renderDistributeContent(); renderAdminSidebar();
 }
-
-function deleteDistRule(ri) {
-  adminDistRules.splice(ri, 1);
-  renderDistributeContent();
-  renderAdminSidebar();
-}
-
-function addDistSrc(ri) {
-  const sel = document.getElementById(`distSrcSel-${ri}`);
-  if (!sel || !sel.value) return;
-  const [section, machine] = sel.value.split('|||');
-  const rule = adminDistRules[ri];
-  if ((rule.sources || []).some(s => s.section === section && s.machine === machine)) {
-    showToast('⚠ Already in sources', false, true); return;
-  }
-  if (!rule.sources) rule.sources = [];
-  rule.sources.push({ section, machine });
+function deleteDistRule(ri){adminDistRules.splice(ri,1);renderDistributeContent();renderAdminSidebar();}
+function addDistSrc(ri){
+  const sel=document.getElementById(`distSrcSel-${ri}`);
+  if(!sel||!sel.value)return;
+  const[section,machine]=sel.value.split('|||');
+  const rule=adminDistRules[ri];
+  if((rule.sources||[]).some(s=>s.section===section&&s.machine===machine)){showToast('⚠ Already in sources',false,true);return;}
+  if(!rule.sources)rule.sources=[];
+  rule.sources.push({section,machine});
   renderDistributeContent();
 }
-
-function removeDistSrc(ri, si) {
-  adminDistRules[ri].sources.splice(si, 1);
-  renderDistributeContent();
-}
-
-function addDistTgt(ri) {
-  const sel = document.getElementById(`distTgtSel-${ri}`);
-  if (!sel || !sel.value) return;
-  const [section, machine] = sel.value.split('|||');
-  const rule = adminDistRules[ri];
-  if ((rule.targets || []).some(t => t.section === section && t.machine === machine)) {
-    showToast('⚠ Already in targets', false, true); return;
-  }
-  if (!rule.targets) rule.targets = [];
-  rule.targets.push({ section, machine });
-  // Default ratio 1 for new target
-  if (!rule.ratios) rule.ratios = [];
+function removeDistSrc(ri,si){adminDistRules[ri].sources.splice(si,1);renderDistributeContent();}
+function addDistTgt(ri){
+  const sel=document.getElementById(`distTgtSel-${ri}`);
+  if(!sel||!sel.value)return;
+  const[section,machine]=sel.value.split('|||');
+  const rule=adminDistRules[ri];
+  if((rule.targets||[]).some(t=>t.section===section&&t.machine===machine)){showToast('⚠ Already in targets',false,true);return;}
+  if(!rule.targets)rule.targets=[];
+  rule.targets.push({section,machine});
+  if(!rule.ratios)rule.ratios=[];
   rule.ratios.push(1);
   renderDistributeContent();
 }
-
-function removeDistTgt(ri, ti) {
-  adminDistRules[ri].targets.splice(ti, 1);
-  if (adminDistRules[ri].ratios) adminDistRules[ri].ratios.splice(ti, 1);
-  renderDistributeContent();
+function removeDistTgt(ri,ti){adminDistRules[ri].targets.splice(ti,1);if(adminDistRules[ri].ratios)adminDistRules[ri].ratios.splice(ti,1);renderDistributeContent();}
+function toggleDistShift(ri,si,checked){
+  const rule=adminDistRules[ri];
+  if(!rule.shifts)rule.shifts=[];
+  if(checked){if(!rule.shifts.includes(si))rule.shifts.push(si);rule.shifts.sort();}
+  else{rule.shifts=rule.shifts.filter(s=>s!==si);}
 }
-
-function toggleDistShift(ri, si, checked) {
-  const rule = adminDistRules[ri];
-  if (!rule.shifts) rule.shifts = [];
-  if (checked) { if (!rule.shifts.includes(si)) rule.shifts.push(si); rule.shifts.sort(); }
-  else { rule.shifts = rule.shifts.filter(s => s !== si); }
-}
-
-function equalizeDistRatios(ri) {
-  const rule = adminDistRules[ri];
-  const n = (rule.targets || []).length;
-  rule.ratios = Array(n).fill(1);
+function equalizeDistRatios(ri){
+  const rule=adminDistRules[ri];
+  const n=(rule.targets||[]).length;
+  rule.ratios=Array(n).fill(1);
   renderDistributeContent();
 }
 
 // ════════════════════════════════════════
 //  MERGE & DISTRIBUTE — RUNTIME ENGINE
-//  Replaces hardcoded Hot Press→Pre Press
-//  logic for all user-configured rules.
 // ════════════════════════════════════════
-
 function runDistributionRules() {
   (DISTRIBUTION_RULES || []).forEach(rule => {
     if (!rule.enabled) return;
-    if (!rule.sources || !rule.targets || !rule.shifts) return;
-    if (!rule.sources.length || !rule.targets.length || !rule.shifts.length) return;
+    if (!rule.sources||!rule.targets||!rule.shifts) return;
+    if (!rule.sources.length||!rule.targets.length||!rule.shifts.length) return;
     applyDistributionRule(rule);
   });
 }
 
 function applyDistributionRule(rule) {
-  const shifts = rule.shifts;
-  const targets = rule.targets;
-  const ratios = rule.ratios || [];
-  const totalRatio = targets.reduce((s, _, ti) => s + (parseFloat(ratios[ti]) || 1), 0);
-
-  // Sum total across ALL source machines × ALL their shifts (grand total)
-  let grandTotal = 0;
-  rule.sources.forEach(src => {
-    const sec = SECTIONS[src.section];
-    if (!sec) return;
-    const mi = sec.machines.indexOf(src.machine);
-    if (mi === -1) return;
-    const id = sl(src.section);
-    shifts.forEach(si => {
-      grandTotal += +inp(id, mi, si)?.value || 0;
-    });
+  const shifts=rule.shifts,targets=rule.targets,ratios=rule.ratios||[];
+  const totalRatio=targets.reduce((s,_,ti)=>s+(parseFloat(ratios[ti])||1),0);
+  let grandTotal=0;
+  rule.sources.forEach(src=>{
+    const sec=SECTIONS[src.section];if(!sec)return;
+    const mi=sec.machines.indexOf(src.machine);if(mi===-1)return;
+    const id=sl(src.section);
+    shifts.forEach(si=>{grandTotal+=+inp(id,mi,si)?.value||0;});
   });
-
-  // Distribute to each target × each shift weighted by ratio
-  // Per-target total share = grandTotal × (ratio[ti] / totalRatio)
-  // Per-cell = share / shifts.length
-  const iso = curDate();
-
-  targets.forEach((tgt, ti) => {
-    const sec = SECTIONS[tgt.section];
-    if (!sec) return;
-    const mi = sec.machines.indexOf(tgt.machine);
-    if (mi === -1) return;
-    const id = sl(tgt.section);
-    const ratio = parseFloat(ratios[ti]) || 1;
-    const share = totalRatio > 0 ? (grandTotal * ratio / totalRatio) : 0;
-    const perCell = Math.round((share / shifts.length) * 100) / 100;
-
-    shifts.forEach(si => {
-      const el = inp(id, mi, si);
-      if (!el) return;
-      const newVal = perCell > 0 ? String(perCell) : '';
-      if (el.value !== newVal) {
-        el.value = newVal;
-        const key = dk(tgt.section, mi, si);
-        const base = getBase(tgt.section, mi, si);
-        if (String(newVal) !== String(base === null || base === undefined ? '' : base)) {
-          dirtyMap[key] = newVal; el.classList.add('dirty');
-        } else {
-          delete dirtyMap[key]; el.classList.remove('dirty');
-        }
-        setBase_single(tgt.section, iso, mi, si, newVal !== '' ? +newVal : '');
+  const iso=curDate();
+  targets.forEach((tgt,ti)=>{
+    const sec=SECTIONS[tgt.section];if(!sec)return;
+    const mi=sec.machines.indexOf(tgt.machine);if(mi===-1)return;
+    const id=sl(tgt.section);
+    const ratio=parseFloat(ratios[ti])||1;
+    const share=totalRatio>0?(grandTotal*ratio/totalRatio):0;
+    const perCell=Math.round((share/shifts.length)*100)/100;
+    shifts.forEach(si=>{
+      const el=inp(id,mi,si);if(!el)return;
+      const newVal=perCell>0?String(perCell):'';
+      if(el.value!==newVal){
+        el.value=newVal;
+        const key=dk(tgt.section,mi,si);
+        const base=getBase(tgt.section,mi,si);
+        if(String(newVal)!==String(base===null||base===undefined?'':base)){dirtyMap[key]=newVal;el.classList.add('dirty');}
+        else{delete dirtyMap[key];el.classList.remove('dirty');}
+        setBase_single(tgt.section,iso,mi,si,newVal!==''?+newVal:'');
       }
     });
-    recalcAll(tgt.section);
-    refreshDot(tgt.section);
+    recalcAll(tgt.section); refreshDot(tgt.section);
   });
   refreshSaveStatus();
 }
 
-// Attach distribution trigger to source machine inputs.
-// Called after buildPanels() so that input elements exist.
 function attachDistributionTriggers() {
   (DISTRIBUTION_RULES || []).forEach(rule => {
     if (!rule.enabled) return;
     rule.sources.forEach(src => {
-      const sec = SECTIONS[src.section];
-      if (!sec) return;
-      const mi = sec.machines.indexOf(src.machine);
-      if (mi === -1) return;
-      const id = sl(src.section);
-      [0,1,2].forEach(si => {
-        const el = inp(id, mi, si);
-        if (!el) return;
-        // Add event listener if not already done
-        if (!el._distTrigger) {
-          el._distTrigger = true;
-          el.addEventListener('input', () => runDistributionRules());
-        }
+      const sec=SECTIONS[src.section];if(!sec)return;
+      const mi=sec.machines.indexOf(src.machine);if(mi===-1)return;
+      const id=sl(src.section);
+      [0,1,2].forEach(si=>{
+        const el=inp(id,mi,si);if(!el)return;
+        if(!el._distTrigger){el._distTrigger=true;el.addEventListener('input',()=>runDistributionRules());}
       });
     });
-    // Make target inputs read-only while rule is enabled
-    rule.targets.forEach(tgt => {
-      const sec = SECTIONS[tgt.section];
-      if (!sec) return;
-      const mi = sec.machines.indexOf(tgt.machine);
-      if (mi === -1) return;
-      const id = sl(tgt.section);
-      (rule.shifts || []).forEach(si => {
-        const el = inp(id, mi, si);
-        if (!el) return;
-        el.readOnly = true;
-        el.style.opacity = '0.65';
-        el.style.cursor = 'not-allowed';
-        el.title = `Auto-distributed by rule: ${rule.name || 'Merge & Distribute'}`;
+    rule.targets.forEach(tgt=>{
+      const sec=SECTIONS[tgt.section];if(!sec)return;
+      const mi=sec.machines.indexOf(tgt.machine);if(mi===-1)return;
+      const id=sl(tgt.section);
+      (rule.shifts||[]).forEach(si=>{
+        const el=inp(id,mi,si);if(!el)return;
+        el.readOnly=true;el.style.opacity='0.65';el.style.cursor='not-allowed';
+        el.title=`Auto-distributed by rule: ${rule.name||'Merge & Distribute'}`;
       });
     });
   });
 }
-
-// Distribution triggers are wired via init flow — see attachDistributionTriggers()
-// called from fetchAll() completion and buildPanels() directly (modified in-place above)
 
 // ════════════════════════════════════════
 //  NOTES SYSTEM
 // ════════════════════════════════════════
+function noteKey(section,si,mi){return section+'|'+toDisp(curDate())+'|'+si+'|'+mi;}
 
-// noteKey matches GAS: section|dateDisp|shiftIdx|machineIdx
-function noteKey(section, si, mi) {
-  return section + '|' + toDisp(curDate()) + '|' + si + '|' + mi;
+function applyNotesFetched(name,iso,notesMap){
+  if(!notesCache[name])notesCache[name]={};
+  const disp=toDisp(iso);
+  notesCache[name][disp]=notesMap;
+  if(iso===curDate())refreshNoteButtons(name);
 }
 
-function applyNotesFetched(name, iso, notesMap) {
-  if (!notesCache[name]) notesCache[name] = {};
-  const disp = toDisp(iso);
-  // Store by display-date key (as used in GAS)
-  notesCache[name][disp] = notesMap;
-  // Update all note buttons for current date
-  if (iso === curDate()) refreshNoteButtons(name);
-}
-
-function refreshNoteButtons(name) {
-  if (!NOTES_ENABLED[name]) return;
-  const id = sl(name);
-  const disp = toDisp(curDate());
-  const noteMap = notesCache[name]?.[disp] || {};
-  SECTIONS[name]?.machines.forEach((_, mi) => {
-    const btn = document.getElementById(`nb-${id}-${mi}`);
-    if (!btn) return;
-    const hasAny = [0,1,2].some(si => {
-      const k = name + '|' + disp + '|' + si + '|' + mi;
-      return noteMap[k] && noteMap[k].trim() !== '';
+function refreshNoteButtons(name){
+  if(!NOTES_ENABLED[name])return;
+  const id=sl(name);
+  const disp=toDisp(curDate());
+  const noteMap=notesCache[name]?.[disp]||{};
+  SECTIONS[name]?.machines.forEach((_,mi)=>{
+    const btn=document.getElementById(`nb-${id}-${mi}`);
+    if(!btn)return;
+    const hasAny=[0,1,2].some(si=>{
+      const k=name+'|'+disp+'|'+si+'|'+mi;
+      return noteMap[k]&&noteMap[k].trim()!=='';
     });
-    btn.classList.toggle('has-note', hasAny);
-    btn.title = hasAny ? 'View / edit note for this machine' : 'Add note for this machine';
-
-    // ── Update per-shift cell note text ──
-    [0,1,2].forEach(si => {
-      const k = name + '|' + disp + '|' + si + '|' + mi;
-      const text = (noteMap[k] || '').trim();
-      const el = document.getElementById(`int-${id}-${mi}-${si}`);
-      if (!el) return;
-      el.textContent = text;
-      el.classList.toggle('has-note', !!text);
+    btn.classList.toggle('has-note',hasAny);
+    btn.title=hasAny?'View / edit note for this machine':'Add note for this machine';
+    [0,1,2].forEach(si=>{
+      const k=name+'|'+disp+'|'+si+'|'+mi;
+      const text=(noteMap[k]||'').trim();
+      const el=document.getElementById(`int-${id}-${mi}-${si}`);
+      if(!el)return;
+      el.textContent=text;
+      el.classList.toggle('has-note',!!text);
     });
   });
 }
 
-// Current note popup state
-let _noteCtx = null; // { name, mi, disp }
+let _noteCtx=null;
 
-function openNotePopup(name, mi) {
-  if (!NOTES_ENABLED[name]) return;
-  const id = sl(name);
-  const disp = toDisp(curDate());
-  _noteCtx = { name, mi, disp };
-
-  // Build title
-  const machineName = SECTIONS[name]?.machines[mi] || ('Machine ' + (mi+1));
-  document.getElementById('notePopupTitle').textContent = 'Shift Notes — ' + machineName;
-  document.getElementById('notePopupMeta').textContent =
-    name + ' › ' + disp + ' › Click a shift tab below to edit that shift\'s note';
-
-  // Build note popup body with 3 shift tabs
-  const noteMap = notesCache[name]?.[disp] || {};
-  const popupBody = document.querySelector('.note-popup-body');
-
-  popupBody.innerHTML = `
+function openNotePopup(name,mi){
+  if(!NOTES_ENABLED[name])return;
+  const id=sl(name);
+  const disp=toDisp(curDate());
+  _noteCtx={name,mi,disp};
+  const machineName=SECTIONS[name]?.machines[mi]||('Machine '+(mi+1));
+  document.getElementById('notePopupTitle').textContent='Shift Notes — '+machineName;
+  const noteMap=notesCache[name]?.[disp]||{};
+  const popupBody=document.querySelector('.note-popup-body');
+  popupBody.innerHTML=`
     <div class="note-popup-meta" id="notePopupMeta">${name} › ${disp}</div>
     <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px;">
-      ${[0,1,2].map(si => {
-        const k = name + '|' + disp + '|' + si + '|' + mi;
-        const hasNote = noteMap[k] && noteMap[k].trim() !== '';
-        const shiftLabels = ['Shift 1','Shift 2','Shift 3'];
+      ${[0,1,2].map(si=>{
+        const k=name+'|'+disp+'|'+si+'|'+mi;
+        const hasNote=noteMap[k]&&noteMap[k].trim()!=='';
+        const shiftLabels=['Shift 1','Shift 2','Shift 3'];
         return `<button class="note-shift-tab${si===0?' active':''}" data-si="${si}"
           style="flex:1;padding:7px 4px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
           border:none;cursor:pointer;border-right:${si<2?'1px solid var(--border)':'none'};
           background:${si===0?'var(--accent)':'var(--bg)'};
-          color:${si===0?'#fff':'var(--text)'};transition:.14s;position:relative;"
+          color:${si===0?'#fff':'var(--text)'};transition:.14s;"
           onclick="switchNoteTab(${si})">
-          ${shiftLabels[si]}${hasNote ? ' 📝' : ''}
+          ${shiftLabels[si]}${hasNote?' 📝':''}
         </button>`;
       }).join('')}
     </div>
-    <textarea class="note-textarea" id="noteTextarea" placeholder="Type your remark / note here — what did this machine produce this shift, any issues, quality observations, etc." maxlength="1000" oninput="updateNoteCharCount()">${noteMap[name + '|' + disp + '|0|' + mi] || ''}</textarea>
+    <textarea class="note-textarea" id="noteTextarea" placeholder="Type your remark / note here…" maxlength="1000" oninput="updateNoteCharCount()">${noteMap[name+'|'+disp+'|0|'+mi]||''}</textarea>
   `;
-
-  _noteCtx.activeSi = 0;
+  _noteCtx.activeSi=0;
   updateNoteCharCount();
   document.getElementById('notePopupBg').classList.add('show');
-  setTimeout(() => document.getElementById('noteTextarea')?.focus(), 80);
+  setTimeout(()=>document.getElementById('noteTextarea')?.focus(),80);
 }
 
-function switchNoteTab(si) {
-  if (!_noteCtx) return;
-  const { name, mi, disp } = _noteCtx;
-
-  // Save current tab's text to local cache before switching
-  const curText = document.getElementById('noteTextarea')?.value || '';
-  const curKey = name + '|' + disp + '|' + _noteCtx.activeSi + '|' + mi;
-  if (!notesCache[name]) notesCache[name] = {};
-  if (!notesCache[name][disp]) notesCache[name][disp] = {};
-  notesCache[name][disp][curKey] = curText;
-
-  _noteCtx.activeSi = si;
-
-  // Update tab highlight
-  document.querySelectorAll('.note-shift-tab').forEach(btn => {
-    const btnSi = +btn.dataset.si;
-    btn.style.background = btnSi === si ? 'var(--accent)' : 'var(--bg)';
-    btn.style.color = btnSi === si ? '#fff' : 'var(--text)';
+function switchNoteTab(si){
+  if(!_noteCtx)return;
+  const{name,mi,disp}=_noteCtx;
+  const curText=document.getElementById('noteTextarea')?.value||'';
+  const curKey=name+'|'+disp+'|'+_noteCtx.activeSi+'|'+mi;
+  if(!notesCache[name])notesCache[name]={};
+  if(!notesCache[name][disp])notesCache[name][disp]={};
+  notesCache[name][disp][curKey]=curText;
+  _noteCtx.activeSi=si;
+  document.querySelectorAll('.note-shift-tab').forEach(btn=>{
+    const btnSi=+btn.dataset.si;
+    btn.style.background=btnSi===si?'var(--accent)':'var(--bg)';
+    btn.style.color=btnSi===si?'#fff':'var(--text)';
   });
-
-  // Load new tab's text
-  const newKey = name + '|' + disp + '|' + si + '|' + mi;
-  const noteMap = notesCache[name]?.[disp] || {};
-  document.getElementById('noteTextarea').value = noteMap[newKey] || '';
+  const newKey=name+'|'+disp+'|'+si+'|'+mi;
+  const noteMap=notesCache[name]?.[disp]||{};
+  document.getElementById('noteTextarea').value=noteMap[newKey]||'';
   updateNoteCharCount();
   document.getElementById('noteTextarea').focus();
 }
 
-function updateNoteCharCount() {
-  const ta = document.getElementById('noteTextarea');
-  const cnt = (ta?.value || '').length;
-  const el = document.getElementById('noteCharCount');
-  if (el) el.textContent = cnt + ' / 1000';
+function updateNoteCharCount(){
+  const ta=document.getElementById('noteTextarea');
+  const cnt=(ta?.value||'').length;
+  const el=document.getElementById('noteCharCount');
+  if(el)el.textContent=cnt+' / 1000';
 }
 
-function closeNotePopup(e) {
-  if (e && e.target !== document.getElementById('notePopupBg')) return;
+function closeNotePopup(e){
+  if(e&&e.target!==document.getElementById('notePopupBg'))return;
   document.getElementById('notePopupBg').classList.remove('show');
-  _noteCtx = null;
+  _noteCtx=null;
 }
 
-function clearNote() {
-  const ta = document.getElementById('noteTextarea');
-  if (ta) { ta.value = ''; updateNoteCharCount(); }
+function clearNote(){
+  const ta=document.getElementById('noteTextarea');
+  if(ta){ta.value='';updateNoteCharCount();}
 }
 
-async function saveNote() {
-  if (!_noteCtx) return;
-  const { name, mi, disp, activeSi } = _noteCtx;
-  const curSi = activeSi !== undefined ? activeSi : 0;
-
-  // Save current tab's textarea into local cache before collecting all
-  const curText = (document.getElementById('noteTextarea')?.value || '').trim();
-  if (!notesCache[name]) notesCache[name] = {};
-  if (!notesCache[name][disp]) notesCache[name][disp] = {};
-  const curKey = name + '|' + disp + '|' + curSi + '|' + mi;
-  notesCache[name][disp][curKey] = curText;
-
-  // Collect all 3 shifts from cache (they were saved to cache on each tab switch)
-  const notes = [0, 1, 2].map(si => {
-    const k = name + '|' + disp + '|' + si + '|' + mi;
-    return { shiftIdx: si, note: notesCache[name][disp][k] || '' };
+async function saveNote(){
+  if(!_noteCtx)return;
+  const{name,mi,disp,activeSi}=_noteCtx;
+  const curSi=activeSi!==undefined?activeSi:0;
+  const curText=(document.getElementById('noteTextarea')?.value||'').trim();
+  if(!notesCache[name])notesCache[name]={};
+  if(!notesCache[name][disp])notesCache[name][disp]={};
+  const curKey=name+'|'+disp+'|'+curSi+'|'+mi;
+  notesCache[name][disp][curKey]=curText;
+  const notes=[0,1,2].map(si=>{
+    const k=name+'|'+disp+'|'+si+'|'+mi;
+    return{shiftIdx:si,note:notesCache[name][disp][k]||''};
   });
-
-  // Update note button state
   refreshNoteButtons(name);
-
-  // Close popup
   document.getElementById('notePopupBg').classList.remove('show');
-  _noteCtx = null;
-
-  // Save ALL 3 shifts to GAS in one call
+  _noteCtx=null;
   showToast('📝 Saving notes…');
-  try {
-    const res = await gasPost({
-      action: 'saveShiftNote',
-      section: name,
-      date: disp,
-      machineIdx: mi,
-      notes: notes   // array of { shiftIdx, note }
-    });
-    if (res?.success) showToast('✅ Notes saved');
-    else showToast('⚠ Note save failed: ' + (res?.error || 'Unknown'), false, true);
-  } catch(e) {
-    showToast('⚠ Note save failed — check connection', false, true);
+  try{
+    const res=await gasPost({action:'saveShiftNote',section:name,date:disp,machineIdx:mi,notes});
+    if(res?.success)showToast('✅ Notes saved');
+    else showToast('⚠ Note save failed: '+(res?.error||'Unknown'),false,true);
+  }catch(e){
+    showToast('⚠ Note save failed — check connection',false,true);
   }
 }
 
-// Get note text for a given section/date/shiftIdx/machineIdx (used by export)
-function getNote(name, disp, si, mi) {
-  const key = name + '|' + disp + '|' + si + '|' + mi;
-  return notesCache[name]?.[disp]?.[key] || '';
+function getNote(name,disp,si,mi){
+  const key=name+'|'+disp+'|'+si+'|'+mi;
+  return notesCache[name]?.[disp]?.[key]||'';
 }
 
-// Fetch notes for all note-enabled sections for a given date (used during export)
-async function fetchNotesForDate(disp) {
-  const noteSections = SNAMES.filter(n => NOTES_ENABLED[n]);
-  if (!noteSections.length) return;
-  await Promise.all(noteSections.map(name =>
-    gasGet({ action: 'getShiftNotes', section: name, date: disp })
-      .then(res => {
-        if (res && res.notes) {
-          if (!notesCache[name]) notesCache[name] = {};
-          notesCache[name][disp] = res.notes;
-        }
-      })
-      .catch(() => {})
+async function fetchNotesForDate(disp){
+  const noteSections=SNAMES.filter(n=>NOTES_ENABLED[n]);
+  if(!noteSections.length)return;
+  await Promise.all(noteSections.map(name=>
+    gasGet({action:'getShiftNotes',section:name,date:disp})
+      .then(res=>{if(res&&res.notes){if(!notesCache[name])notesCache[name]={};notesCache[name][disp]=res.notes;}})
+      .catch(()=>{})
   ));
 }
 
