@@ -332,6 +332,75 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
 .admin-notes-toggle input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;}
 .admin-notes-toggle label{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;flex:1;}
 .admin-notes-toggle .note-badge{background:rgba(201,122,8,.13);border:1px solid rgba(201,122,8,.3);color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;letter-spacing:.5px;}
+
+/* ── IMPORT MODAL ── */
+.import-modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:0;width:900px;max-width:97vw;max-height:92vh;display:flex;flex-direction:column;box-shadow:var(--shadow2);overflow:hidden;}
+.import-modal-head{background:#1a5fb4;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.import-modal-head h3{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;color:#fff;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+.import-modal-close{background:rgba(255,255,255,.18);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.14s;}
+.import-modal-close:hover{background:rgba(255,255,255,.32);}
+.import-modal-body{flex:1;overflow-y:auto;padding:18px 20px;}
+.import-drop-zone{border:2.5px dashed var(--border2);border-radius:10px;padding:38px 20px;text-align:center;cursor:pointer;transition:.18s;background:var(--bg);}
+.import-drop-zone:hover,.import-drop-zone.drag-over{border-color:var(--blue);background:rgba(26,95,180,.05);}
+.import-drop-icon{font-size:36px;margin-bottom:10px;}
+.import-drop-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-bottom:5px;letter-spacing:.5px;}
+.import-drop-sub{font-size:12px;color:var(--muted);}
+.import-stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.import-stat{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 14px;flex:1;min-width:110px;}
+.import-stat-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--accent);}
+.import-stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;}
+.import-section-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:.5px;color:var(--blue);text-transform:uppercase;margin:14px 0 7px;padding-bottom:4px;border-bottom:2px solid rgba(26,95,180,.2);}
+.conflict-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px;}
+.conflict-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);background:var(--bg2);padding:6px 8px;border:1px solid var(--border);text-align:left;}
+.conflict-table td{padding:5px 8px;border:1px solid var(--border);vertical-align:middle;}
+.conflict-table tr:hover td{background:var(--row-hover);}
+.ct-date{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--accent);}
+.ct-machine{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--text);}
+.ct-shift{font-size:10px;color:var(--muted);}
+.ct-val-sheet{color:var(--green);font-weight:700;}
+.ct-val-xl{color:var(--blue);font-weight:700;}
+.ct-keep-btns{display:flex;gap:4px;}
+.ct-keep-btn{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;border:1.5px solid var(--border2);cursor:pointer;background:transparent;color:var(--muted);transition:.12s;white-space:nowrap;}
+.ct-keep-btn:hover{border-color:var(--accent);color:var(--accent);}
+.ct-keep-btn.sel-sheet{background:var(--green);color:#fff;border-color:var(--green);}
+.ct-keep-btn.sel-xl{background:var(--blue);color:#fff;border-color:var(--blue);}
+.ct-keep-btn.sel-skip{background:var(--muted);color:#fff;border-color:var(--muted);}
+.import-bulk-bar{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.import-bulk-bar span{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;}
+.import-new-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;}
+.import-new-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);background:var(--bg2);padding:5px 8px;border:1px solid var(--border);text-align:left;}
+.import-new-table td{padding:4px 8px;border:1px solid var(--border);}
+.import-new-table tr:hover td{background:var(--row-hover);}
+.import-modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--surface);}
+.import-progress{display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;text-align:center;}
+.import-progress.show{display:block;}
+.import-progress p{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px;}
+.btn-blue{background:#1a5fb4;color:#fff;} .btn-blue:hover{background:#164e9a;}
+.import-empty-note{font-size:12px;color:var(--muted);text-align:center;padding:18px;background:var(--bg);border:1px dashed var(--border);border-radius:8px;margin-bottom:10px;}
+/* ── IMPORT DATE RANGE STEP ── */
+.idr-wrap{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+.idr-head{background:var(--bg2);padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.idr-head-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--text);letter-spacing:.4px;}
+.idr-head-sub{font-size:11px;color:var(--muted);}
+.idr-presets{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px 8px;}
+.idr-preset{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;padding:5px 13px;border-radius:20px;border:1.5px solid var(--border2);color:var(--muted);cursor:pointer;background:transparent;transition:.14s;white-space:nowrap;}
+.idr-preset:hover{border-color:var(--blue);color:var(--blue);}
+.idr-preset.act{background:var(--blue);color:#fff;border-color:var(--blue);}
+.idr-custom{padding:0 14px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.idr-custom label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--accent);text-transform:uppercase;}
+.idr-custom input[type=date]{background:var(--bg);border:1.5px solid var(--border);color:var(--text);padding:5px 9px;border-radius:6px;font-family:'Barlow',sans-serif;font-size:13px;outline:none;}
+.idr-custom input[type=date]:focus{border-color:var(--accent);}
+.idr-summary{padding:8px 14px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border);}
+.idr-badge{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.3px;}
+.idr-badge-blue{background:rgba(26,95,180,.12);color:var(--blue);border:1px solid rgba(26,95,180,.25);}
+.idr-badge-green{background:rgba(26,122,66,.12);color:var(--green);border:1px solid rgba(26,122,66,.25);}
+.idr-badge-warn{background:rgba(201,122,8,.12);color:var(--accent);border:1px solid rgba(201,122,8,.25);}
+.idr-date-chips{display:flex;gap:4px;flex-wrap:wrap;padding:8px 14px 10px;}
+.idr-date-chip{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.3px;background:rgba(26,95,180,.09);color:var(--blue);border:1px solid rgba(26,95,180,.2);}
+.idr-date-chip.out{background:var(--bg2);color:var(--muted);border-color:var(--border);opacity:.5;text-decoration:line-through;}
+.btn-proceed{background:var(--blue);color:#fff;font-size:13px;padding:8px 20px;}
+.btn-proceed:hover{background:#164e9a;}
+.btn-proceed:disabled{opacity:.4;cursor:not-allowed;}
 </style>
 </head>
 <body>
@@ -347,6 +416,7 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
   <div class="topbar-r">
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
     <button class="btn btn-accent" onclick="openExport()">📥 Export</button>
+    <button class="btn btn-blue" onclick="openImport()" title="Import from Excel (Alphabetical format)">📤 Import</button>
     <button class="btn btn-admin" onclick="openAdminLogin()" title="Admin Panel">⚙ Admin</button>
   </div>
 </div>
@@ -520,6 +590,82 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
       <button class="btn btn-ghost btn-sm" onclick="closeNotePopup()">Cancel</button>
       <button class="btn btn-red btn-sm" id="noteClearBtn" onclick="clearNote()">🗑 Clear</button>
       <button class="btn btn-accent btn-sm" onclick="saveNote()">💾 Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-bg" id="importModal">
+  <div class="import-modal">
+    <div class="import-modal-head">
+      <h3>📤 Import from Excel <span style="background:rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:1px;">ALPHABETICAL FORMAT</span></h3>
+      <button class="import-modal-close" onclick="closeImport()">✕</button>
+    </div>
+    <div class="import-modal-body" id="importModalBody">
+      <div id="importStep1">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.65;background:rgba(26,95,180,.06);border:1px solid rgba(26,95,180,.2);border-radius:8px;padding:10px 13px;">
+          <strong style="color:var(--blue);">How this works:</strong> Upload an Excel file in <strong>Alphabetical Format</strong> (exported from this app, or manually filled).
+          <br>• Blank cells in Excel will <strong>not overwrite</strong> existing Google Sheet data.
+          <br>• If Excel has a value and the Sheet already has a <em>different</em> value, you will be shown a <strong>conflict review table</strong> to decide per-row.
+          <br>• Only values you approve will be written to the Sheet.
+        </div>
+        <div class="import-drop-zone" id="importDropZone" onclick="document.getElementById('importFileInput').click()"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleImportDrop(event)">
+          <div class="import-drop-icon">📂</div>
+          <div class="import-drop-title">Drop your Excel file here</div>
+          <div class="import-drop-sub">or click to browse — .xlsx / .xls files only</div>
+        </div>
+        <input type="file" id="importFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleImportFile(event)"/>
+      </div>
+      <!-- Step 1.5: Date range selector (shown after file parsed, before fetching) -->
+      <div id="importStep15" style="display:none;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;background:rgba(26,122,66,.06);border:1px solid rgba(26,122,66,.22);border-radius:8px;padding:9px 13px;">
+          <strong style="color:var(--green);">✅ File parsed.</strong> Now select which dates to import — only those dates will be fetched from Google Sheet, keeping it fast.
+        </div>
+        <div class="idr-wrap">
+          <div class="idr-head">
+            <span class="idr-head-title">📅 Select Date Range to Import</span>
+            <span class="idr-head-sub" id="idrFileDatesCount"></span>
+          </div>
+          <div class="idr-presets" id="idrPresets">
+            <button class="idr-preset" onclick="setImportPreset('yesterday',this)">Yesterday</button>
+            <button class="idr-preset" onclick="setImportPreset('today',this)">Today</button>
+            <button class="idr-preset" onclick="setImportPreset('week',this)">Last 7 Days</button>
+            <button class="idr-preset act" onclick="setImportPreset('15days',this)">Last 15 Days</button>
+            <button class="idr-preset" onclick="setImportPreset('month',this)">Last 30 Days</button>
+            <button class="idr-preset" onclick="setImportPreset('all',this)">All in File</button>
+            <button class="idr-preset" onclick="setImportPreset('custom',this)">📆 Custom…</button>
+          </div>
+          <div class="idr-custom" id="idrCustomRow" style="display:none;">
+            <label>From</label>
+            <input type="date" id="idrFrom" onchange="onImportCustomDate()"/>
+            <label>To</label>
+            <input type="date" id="idrTo" onchange="onImportCustomDate()"/>
+          </div>
+          <div class="idr-date-chips" id="idrDateChips"></div>
+          <div class="idr-summary">
+            <span class="idr-badge idr-badge-blue" id="idrMatchCount">0 dates selected</span>
+            <span class="idr-badge idr-badge-warn" id="idrSkipCount" style="display:none;"></span>
+            <span style="flex:1;"></span>
+            <button class="btn btn-proceed" id="idrProceedBtn" onclick="proceedImportFetch()" disabled>Fetch &amp; Compare →</button>
+          </div>
+        </div>
+      </div>
+      <div id="importStep2" style="display:none;">
+        <div class="import-stats-row" id="importStatsRow"></div>
+        <div class="import-progress" id="importFetchProgress">
+          <p id="importFetchMsg">Loading current sheet data for comparison…</p>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="importFetchBar" style="width:0%"></div></div>
+        </div>
+        <div id="importReviewContent"></div>
+      </div>
+    </div>
+    <div class="import-modal-footer">
+      <span id="importFooterStatus" style="flex:1;font-size:11px;color:var(--muted);"></span>
+      <button class="btn btn-ghost" onclick="closeImport()">Cancel</button>
+      <button class="btn btn-blue" id="importApplyBtn" style="display:none;" onclick="applyImport()">✅ Apply Import to Sheet</button>
     </div>
   </div>
 </div>
@@ -2926,6 +3072,516 @@ async function fetchNotesForDate(disp){
       .then(res=>{if(res&&res.notes){if(!notesCache[name])notesCache[name]={};notesCache[name][disp]=res.notes;}})
       .catch(()=>{})
   ));
+}
+
+// ════════════════════════════════════════
+//  EXCEL IMPORT — ALPHABETICAL FORMAT
+// ════════════════════════════════════════
+
+let _importParsed   = null; // { dates: ['dd-mm-yyyy',...], rows: [...] }
+let _importConflicts = [];
+let _importNewVals   = [];
+let _importFilteredDates = []; // dates actually selected for this import run
+
+function openImport() {
+  document.getElementById('importModal').classList.add('show');
+  resetImportUI();
+}
+function closeImport() {
+  document.getElementById('importModal').classList.remove('show');
+}
+function resetImportUI() {
+  document.getElementById('importStep1').style.display = '';
+  document.getElementById('importStep15').style.display = 'none';
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('importDropZone').classList.remove('drag-over');
+  document.getElementById('importApplyBtn').style.display = 'none';
+  document.getElementById('importFooterStatus').textContent = '';
+  document.getElementById('importReviewContent').innerHTML = '';
+  document.getElementById('importStatsRow').innerHTML = '';
+  _importParsed = null; _importConflicts = []; _importNewVals = []; _importFilteredDates = [];
+}
+
+function handleImportDrop(e) {
+  e.preventDefault();
+  document.getElementById('importDropZone').classList.remove('drag-over');
+  const file = e.dataTransfer?.files?.[0];
+  if (file) processImportFile(file);
+}
+function handleImportFile(e) {
+  const file = e.target.files?.[0];
+  if (file) processImportFile(file);
+}
+
+function processImportFile(file) {
+  if (!file.name.match(/\.(xlsx|xls)$/i)) {
+    showToast('⚠ Please upload an .xlsx or .xls file', false, true); return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      _importParsed = parseAlphabeticalSheet(ws);
+      if (!_importParsed || !_importParsed.dates.length) {
+        showToast('⚠ No valid date columns found. Make sure this is an Alphabetical Format export.', false, true); return;
+      }
+      // → show date range selector (step 1.5) instead of jumping straight to fetch
+      document.getElementById('importStep1').style.display = 'none';
+      document.getElementById('importStep15').style.display = '';
+      showImportDateSelector();
+    } catch(err) {
+      showToast('❌ Failed to parse file: ' + err.message, true);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── DATE RANGE SELECTOR (Step 1.5) ──────────────────────
+function dispToIso(disp) { const [dd,mm,yy]=disp.split('-'); return `${yy}-${mm}-${dd}`; }
+function isoToDisp(iso)  { return toDisp(iso); } // already exists as toDisp()
+
+function showImportDateSelector() {
+  const allDates = _importParsed.dates; // ['dd-mm-yyyy', ...]
+  const count = allDates.length;
+  document.getElementById('idrFileDatesCount').textContent = `${count} date${count!==1?'s':''} found in file`;
+
+  // Default: last 15 days
+  setImportPreset('15days', document.querySelector('#idrPresets .idr-preset.act'));
+}
+
+function setImportPreset(preset, btn) {
+  // Update button styles
+  document.querySelectorAll('.idr-preset').forEach(b => b.classList.remove('act'));
+  if (btn) btn.classList.add('act');
+
+  const customRow = document.getElementById('idrCustomRow');
+  customRow.style.display = preset === 'custom' ? '' : 'none';
+
+  if (preset !== 'custom') {
+    const today = new Date();
+    let fromIso = '', toIso = isoToday();
+    if (preset === 'yesterday') {
+      fromIso = isoYesterday(); toIso = isoYesterday();
+    } else if (preset === 'today') {
+      fromIso = isoToday();
+    } else if (preset === 'week') {
+      const d = new Date(today); d.setDate(d.getDate() - 6); fromIso = localISO(d);
+    } else if (preset === '15days') {
+      const d = new Date(today); d.setDate(d.getDate() - 14); fromIso = localISO(d);
+    } else if (preset === 'month') {
+      const d = new Date(today); d.setDate(d.getDate() - 29); fromIso = localISO(d);
+    } else if (preset === 'all') {
+      fromIso = '2000-01-01'; // covers everything
+    }
+    applyImportDateFilter(fromIso, toIso);
+  } else {
+    // Seed custom inputs with current filtered range
+    const filtered = _importFilteredDates;
+    if (filtered.length) {
+      document.getElementById('idrFrom').value = dispToIso(filtered[0]);
+      document.getElementById('idrTo').value   = dispToIso(filtered[filtered.length-1]);
+    } else {
+      document.getElementById('idrFrom').value = isoYesterday();
+      document.getElementById('idrTo').value   = isoToday();
+    }
+    onImportCustomDate();
+  }
+}
+
+function onImportCustomDate() {
+  const f = document.getElementById('idrFrom').value;
+  const t = document.getElementById('idrTo').value;
+  if (f && t) applyImportDateFilter(f, t);
+}
+
+function applyImportDateFilter(fromIso, toIso) {
+  const allDates = _importParsed.dates; // dd-mm-yyyy
+  _importFilteredDates = allDates.filter(disp => {
+    const iso = dispToIso(disp);
+    return iso >= fromIso && iso <= toIso;
+  });
+
+  // Render date chips
+  const chipsEl = document.getElementById('idrDateChips');
+  chipsEl.innerHTML = allDates.map(disp => {
+    const inRange = _importFilteredDates.includes(disp);
+    return `<span class="idr-date-chip${inRange?'':' out'}">${disp}</span>`;
+  }).join('');
+
+  // Update summary badges
+  const matched = _importFilteredDates.length;
+  const skipped = allDates.length - matched;
+  document.getElementById('idrMatchCount').textContent = `${matched} date${matched!==1?'s':''} selected`;
+  const skipBadge = document.getElementById('idrSkipCount');
+  if (skipped > 0) { skipBadge.textContent = `${skipped} skipped`; skipBadge.style.display=''; }
+  else { skipBadge.style.display='none'; }
+
+  // Enable/disable proceed button
+  document.getElementById('idrProceedBtn').disabled = matched === 0;
+}
+
+function proceedImportFetch() {
+  if (!_importFilteredDates.length) return;
+  document.getElementById('importStep15').style.display = 'none';
+  document.getElementById('importStep2').style.display = '';
+  startImportComparison();
+}
+
+// ── Parse alphabetical sheet ─────────────────────────────
+// Row 1: "Date" | date1 | '' | '' | date2 | ...  (date header merged 3 cols)
+// Row 2: "Machine Name" | Shift 1 | Shift 2 | Shift 3 | ...
+// Row 3+: machine | val | val | val | ...
+function parseAlphabeticalSheet(ws) {
+  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
+  const numRows = range.e.r + 1;
+  const numCols = range.e.c + 1;
+
+  function cellVal(r, c) {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    const cell = ws[addr];
+    if (!cell || cell.v === undefined || cell.v === null) return '';
+    return String(cell.v).trim();
+  }
+
+  // Row 0 (1 in Excel): find date headers — they appear in col 1,4,7,... (every 3 cols)
+  const dates = [];
+  const dateColMap = {}; // dateStr -> base col index (0-based)
+  for (let c = 1; c < numCols; c++) {
+    const v = cellVal(0, c);
+    // could be "dd-mm-yyyy" string or a date serial
+    let disp = '';
+    if (/^\d{2}-\d{2}-\d{4}$/.test(v)) {
+      disp = v;
+    } else {
+      // Try parsing as Excel date serial
+      const cell = ws[XLSX.utils.encode_cell({ r: 0, c })];
+      if (cell && cell.t === 'n' && cell.v > 10000) {
+        const d = XLSX.SSF.parse_date_code(cell.v);
+        if (d) disp = String(d.d).padStart(2,'0') + '-' + String(d.m).padStart(2,'0') + '-' + String(d.y);
+      }
+    }
+    if (disp) { dates.push(disp); dateColMap[disp] = c; }
+  }
+
+  if (!dates.length) return { dates: [], rows: [] };
+
+  // Row 2+: machine rows
+  const rows = [];
+  for (let r = 2; r < numRows; r++) {
+    const mname = cellVal(r, 0);
+    if (!mname || mname.toLowerCase() === 'machine name') continue;
+    const shifts = {};
+    dates.forEach((disp, di) => {
+      const bc = dateColMap[disp];
+      const s1 = cellVal(r, bc);
+      const s2 = cellVal(r, bc + 1);
+      const s3 = cellVal(r, bc + 2);
+      shifts[disp] = [s1, s2, s3];
+    });
+    rows.push({ machine: mname, shifts });
+  }
+  return { dates, rows };
+}
+
+// ── Compare parsed data vs baseline, fetch missing dates ────
+async function startImportComparison() {
+  const prog = document.getElementById('importFetchProgress');
+  const bar  = document.getElementById('importFetchBar');
+  const msg  = document.getElementById('importFetchMsg');
+  prog.classList.add('show');
+
+  rebuildMachineMap();
+
+  // Use only the filtered dates selected by user
+  const dispDates = _importFilteredDates.length ? _importFilteredDates : _importParsed.dates;
+  const isoDates  = dispDates.map(dispToIso);
+
+  // Find which dates are missing from baseline
+  const missingIso = isoDates.filter(iso =>
+    SNAMES.some(name => SHIFTS.some((_, si) => !Array.isArray(baseline[name]?.[iso]?.[si])))
+  );
+
+  let done = 0;
+  const total = Math.max(missingIso.length, 1);
+  msg.textContent = missingIso.length > 0
+    ? `Fetching ${missingIso.length} of ${isoDates.length} date(s) from Google Sheet…`
+    : `Comparing ${isoDates.length} date(s) with cached data…`;
+  bar.style.width = '0%';
+
+  // Fetch missing dates — one date at a time, all sections parallel
+  for (const iso of missingIso) {
+    const disp = toDisp(iso);
+    const calls = [];
+    SNAMES.forEach(name => {
+      SHIFTS.forEach((sh, si) => {
+        calls.push(
+          gasGet({ action: 'getShiftData', section: name, date: disp, shift: sh })
+            .then(res => applyFetched(name, si, res, iso))
+            .catch(() => applyFetched(name, si, null, iso))
+        );
+      });
+    });
+    await Promise.all(calls);
+    done++;
+    bar.style.width = Math.round(done / total * 100) + '%';
+    msg.textContent = `Fetching… ${done} / ${missingIso.length} date(s) done`;
+  }
+
+  prog.classList.remove('show');
+  bar.style.width = '100%';
+  buildImportDiff();
+}
+
+function buildImportDiff() {
+  const parsed = _importParsed;
+  rebuildMachineMap();
+
+  _importConflicts = [];
+  _importNewVals   = [];
+  let skippedBlank = 0;
+  let unknownMachines = [];
+
+  // Only process the filtered date set
+  const activeDates = new Set(_importFilteredDates.length ? _importFilteredDates : parsed.dates);
+
+  parsed.rows.forEach(row => {
+    const mname = row.machine;
+    const lookup = MACHINE_SECTION_MAP[mname];
+    if (!lookup) { unknownMachines.push(mname); return; }
+    const { section, machineIdx } = lookup;
+
+    parsed.dates.forEach(disp => {
+      if (!activeDates.has(disp)) return; // skip dates outside selected range
+      const [dd, mm, yy] = disp.split('-');
+      const iso = `${yy}-${mm}-${dd}`;
+      const xlVals = row.shifts[disp] || ['', '', ''];
+
+      xlVals.forEach((xlRaw, si) => {
+        const xl = String(xlRaw).trim();
+        if (xl === '' || xl === null || xl === undefined) { skippedBlank++; return; }
+        const xlNum = parseFloat(xl);
+        const xlFinal = isNaN(xlNum) ? xl : xlNum;
+
+        const sheetRaw = baseline[section]?.[iso]?.[si]?.[machineIdx];
+        const sheet = (sheetRaw !== undefined && sheetRaw !== null && sheetRaw !== '') ? sheetRaw : '';
+
+        if (sheet === '' || sheet === null || sheet === undefined) {
+          _importNewVals.push({ disp, iso, machine: mname, section, machineIdx, si, xlVal: xlFinal });
+        } else {
+          const sheetNum = parseFloat(String(sheet));
+          const xlNum2   = parseFloat(String(xlFinal));
+          const same = (!isNaN(sheetNum) && !isNaN(xlNum2))
+            ? Math.abs(sheetNum - xlNum2) < 0.0001
+            : String(sheet).trim() === String(xlFinal).trim();
+          if (!same) {
+            _importConflicts.push({ disp, iso, machine: mname, section, machineIdx, si, sheetVal: sheet, xlVal: xlFinal, decision: 'sheet' });
+          }
+        }
+      });
+    });
+  });
+
+  renderImportReview(skippedBlank, unknownMachines);
+}
+
+function renderImportReview(skippedBlank, unknownMachines) {
+  const statsRow = document.getElementById('importStatsRow');
+  statsRow.innerHTML = `
+    <div class="import-stat"><div class="import-stat-num">${_importNewVals.length}</div><div class="import-stat-lbl">New Entries</div></div>
+    <div class="import-stat"><div class="import-stat-num" style="color:var(--red);">${_importConflicts.length}</div><div class="import-stat-lbl">Conflicts</div></div>
+    <div class="import-stat"><div class="import-stat-num" style="color:var(--muted);">${skippedBlank}</div><div class="import-stat-lbl">Blanks Skipped</div></div>
+    ${unknownMachines.length ? `<div class="import-stat"><div class="import-stat-num" style="color:var(--red);">${unknownMachines.length}</div><div class="import-stat-lbl">Unknown Machines</div></div>` : ''}
+  `;
+
+  const content = document.getElementById('importReviewContent');
+  let html = '';
+
+  // Unknown machines warning
+  if (unknownMachines.length) {
+    const uq = [...new Set(unknownMachines)];
+    html += `<div style="background:rgba(184,50,40,.07);border:1px solid rgba(184,50,40,.25);border-radius:8px;padding:10px 13px;margin-bottom:12px;font-size:12px;">
+      <strong style="color:var(--red);">⚠ Unknown machines in Excel (not in any section):</strong><br>
+      <span style="color:var(--muted);">${uq.join(', ')}</span><br>
+      <span style="color:var(--muted);font-size:11px;">These rows will be skipped. Check machine names match exactly.</span>
+    </div>`;
+  }
+
+  // Conflicts section
+  if (_importConflicts.length) {
+    html += `<div class="import-section-title">⚠ ${_importConflicts.length} Conflict${_importConflicts.length > 1 ? 's' : ''} — Review Each Row</div>`;
+    html += `<div class="import-bulk-bar">
+      <span>Bulk decide:</span>
+      <button class="btn btn-sm" style="background:var(--green);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:11px;" onclick="bulkConflictDecision('sheet')">✅ Keep Sheet for All</button>
+      <button class="btn btn-sm" style="background:var(--blue);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:11px;" onclick="bulkConflictDecision('xl')">📤 Use Excel for All</button>
+      <button class="btn btn-sm" style="background:var(--muted);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:11px;" onclick="bulkConflictDecision('skip')">⊘ Skip All</button>
+    </div>`;
+    html += `<table class="conflict-table"><thead><tr>
+      <th>Date</th><th>Machine</th><th>Section</th><th>Shift</th>
+      <th style="color:var(--green);">📊 Sheet Value</th>
+      <th style="color:var(--blue);">📤 Excel Value</th>
+      <th>Decision</th>
+    </tr></thead><tbody id="conflictTableBody">`;
+    _importConflicts.forEach((c, ci) => {
+      const shiftLabels = ['Shift 1', 'Shift 2', 'Shift 3'];
+      html += `<tr id="ctr-${ci}">
+        <td class="ct-date">${c.disp}</td>
+        <td class="ct-machine">${c.machine}</td>
+        <td style="font-size:11px;color:var(--muted);">${c.section}</td>
+        <td class="ct-shift">${shiftLabels[c.si]}</td>
+        <td class="ct-val-sheet">${c.sheetVal}</td>
+        <td class="ct-val-xl">${c.xlVal}</td>
+        <td>
+          <div class="ct-keep-btns">
+            <button class="ct-keep-btn sel-sheet" id="cBtn-${ci}-sheet" onclick="setConflict(${ci},'sheet')">✅ Sheet</button>
+            <button class="ct-keep-btn" id="cBtn-${ci}-xl" onclick="setConflict(${ci},'xl')">📤 Excel</button>
+            <button class="ct-keep-btn" id="cBtn-${ci}-skip" onclick="setConflict(${ci},'skip')">⊘ Skip</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  // New entries preview
+  if (_importNewVals.length) {
+    html += `<div class="import-section-title">✅ ${_importNewVals.length} New Entries (will be imported)</div>`;
+    // Group by date for readability, show max 50
+    const preview = _importNewVals.slice(0, 60);
+    const shiftLabels = ['Shift 1', 'Shift 2', 'Shift 3'];
+    html += `<table class="import-new-table"><thead><tr>
+      <th>Date</th><th>Machine</th><th>Section</th><th>Shift</th><th>Value</th>
+    </tr></thead><tbody>`;
+    preview.forEach(v => {
+      html += `<tr><td class="ct-date">${v.disp}</td><td class="ct-machine">${v.machine}</td>
+        <td style="font-size:11px;color:var(--muted);">${v.section}</td>
+        <td class="ct-shift">${shiftLabels[v.si]}</td>
+        <td style="font-weight:700;color:var(--blue);">${v.xlVal}</td></tr>`;
+    });
+    if (_importNewVals.length > 60) {
+      html += `<tr><td colspan="5" style="text-align:center;color:var(--muted);font-size:11px;padding:6px;">…and ${_importNewVals.length - 60} more entries</td></tr>`;
+    }
+    html += `</tbody></table>`;
+  }
+
+  if (!_importNewVals.length && !_importConflicts.length) {
+    html += `<div class="import-empty-note">No new data found in this Excel file — all values are either blank or identical to what is already in the Sheet.</div>`;
+  }
+
+  content.innerHTML = html;
+
+  // Show apply button if there's something to do
+  const hasWork = _importNewVals.length > 0 || _importConflicts.some(c => c.decision === 'xl');
+  document.getElementById('importApplyBtn').style.display = (_importNewVals.length || _importConflicts.length) ? '' : 'none';
+  updateImportFooterStatus();
+}
+
+function setConflict(ci, decision) {
+  _importConflicts[ci].decision = decision;
+  ['sheet','xl','skip'].forEach(d => {
+    const btn = document.getElementById(`cBtn-${ci}-${d}`);
+    if (!btn) return;
+    btn.className = 'ct-keep-btn' + (decision === d ? ` sel-${d}` : '');
+  });
+  updateImportFooterStatus();
+}
+
+function bulkConflictDecision(decision) {
+  _importConflicts.forEach((_, ci) => setConflict(ci, decision));
+}
+
+function updateImportFooterStatus() {
+  const xlCount    = _importConflicts.filter(c => c.decision === 'xl').length;
+  const skipCount  = _importConflicts.filter(c => c.decision === 'skip').length;
+  const sheetCount = _importConflicts.filter(c => c.decision === 'sheet').length;
+  const totalWrite = _importNewVals.length + xlCount;
+  let parts = [];
+  if (_importNewVals.length) parts.push(`${_importNewVals.length} new`);
+  if (xlCount) parts.push(`${xlCount} from Excel`);
+  if (sheetCount) parts.push(`${sheetCount} kept as-is`);
+  if (skipCount)  parts.push(`${skipCount} skipped`);
+  document.getElementById('importFooterStatus').textContent = totalWrite > 0
+    ? `Ready to write ${totalWrite} value${totalWrite > 1 ? 's' : ''} · ` + parts.join(', ')
+    : parts.length ? parts.join(', ') : '';
+  document.getElementById('importApplyBtn').disabled = totalWrite === 0;
+}
+
+// ── APPLY IMPORT ─────────────────────────────────────────
+async function applyImport() {
+  // Collect all writes: new vals + conflict decisions where xl was chosen
+  const writes = [
+    ..._importNewVals,
+    ..._importConflicts.filter(c => c.decision === 'xl').map(c => ({
+      disp: c.disp, iso: c.iso, machine: c.machine, section: c.section,
+      machineIdx: c.machineIdx, si: c.si, xlVal: c.xlVal
+    }))
+  ];
+
+  if (!writes.length) { showToast('Nothing to import.', false, true); return; }
+
+  document.getElementById('importApplyBtn').disabled = true;
+  document.getElementById('importApplyBtn').innerHTML = '<span class="btn-spinner"></span> Saving…';
+  document.getElementById('importFooterStatus').textContent = 'Sending to Google Sheet…';
+
+  // Group by section + date + shift for batch submitShiftData calls
+  // Structure: { [section]: { [iso]: { [si]: { [machineIdx]: val } } } }
+  const grouped = {};
+  writes.forEach(w => {
+    if (!grouped[w.section]) grouped[w.section] = {};
+    if (!grouped[w.section][w.iso]) grouped[w.section][w.iso] = {};
+    if (!grouped[w.section][w.iso][w.si]) grouped[w.section][w.iso][w.si] = {};
+    grouped[w.section][w.iso][w.si][w.machineIdx] = w.xlVal;
+  });
+
+  // Also update local baseline immediately for UI
+  writes.forEach(w => setBase_single(w.section, w.iso, w.machineIdx, w.si, w.xlVal));
+
+  let savedSections = 0, errors = 0;
+  const calls = [];
+  Object.entries(grouped).forEach(([secName, dates]) => {
+    Object.entries(dates).forEach(([iso, shifts]) => {
+      const disp = toDisp(iso);
+      Object.entries(shifts).forEach(([siStr, machineMap]) => {
+        const si = +siStr;
+        const sec = SECTIONS[secName];
+        if (!sec) return;
+        // Build sparse machines array (null = skip, value = write)
+        const machines = sec.machines.map((_, mi) => {
+          if (machineMap[mi] !== undefined) return machineMap[mi];
+          return null; // sparse — skip
+        });
+        calls.push(
+          gasPost({ action: 'submitShiftData', section: secName, date: disp, shift: SHIFTS[si], machines, sparse: true })
+            .then(res => { if (res?.success) savedSections++; else { errors++; console.error('Import save error', secName, disp, si, res); } })
+            .catch(err => { errors++; console.error('Import net error', err); })
+        );
+      });
+    });
+  });
+
+  await Promise.all(calls);
+
+  document.getElementById('importApplyBtn').innerHTML = '✅ Apply Import to Sheet';
+  document.getElementById('importApplyBtn').disabled = false;
+
+  if (errors === 0) {
+    showToast(`✅ Import complete! ${writes.length} value${writes.length > 1 ? 's' : ''} written to Sheet.`);
+    document.getElementById('importFooterStatus').textContent = `✅ Done — ${writes.length} values imported successfully.`;
+    // Refresh dots & UI for affected sections
+    Object.keys(grouped).forEach(secName => refreshDot(secName));
+    refreshSaveStatus();
+    // Trigger Drive archive for affected dates
+    const affectedDates = [...new Set(writes.map(w => w.iso))];
+    affectedDates.forEach(iso => {
+      gasPost({ action: 'archiveDateSync', date: toDisp(iso) }).catch(() => {});
+    });
+    // Close after brief pause
+    setTimeout(() => { closeImport(); fetchAll(false); }, 1400);
+  } else {
+    showToast(`⚠ Import done with ${errors} error(s). Check console.`, false, true);
+    document.getElementById('importFooterStatus').textContent = `⚠ ${errors} error(s) — some values may not have saved.`;
+  }
 }
 
 init();
