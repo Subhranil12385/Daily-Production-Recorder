@@ -377,6 +377,31 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
 .import-progress p{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px;}
 .btn-blue{background:#1a5fb4;color:#fff;} .btn-blue:hover{background:#164e9a;}
 .import-empty-note{font-size:12px;color:var(--muted);text-align:center;padding:18px;background:var(--bg);border:1px dashed var(--border);border-radius:8px;margin-bottom:10px;}
+/* ── EXPORT NAME TOGGLE ── */
+.exp-name-toggle{display:flex;align-items:center;gap:10px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:12px;}
+.exp-name-toggle-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;flex:1;}
+.toggle-sw{position:relative;display:inline-block;width:42px;height:22px;flex-shrink:0;}
+.toggle-sw input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:22px;transition:.2s;}
+.toggle-slider:before{position:absolute;content:'';height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
+input:checked + .toggle-slider{background:var(--green);}
+input:checked + .toggle-slider:before{transform:translateX(20px);}
+.toggle-name-left{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--text);}
+.toggle-name-right{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--text);}
+/* ── MAPPING IMPORT MODAL ── */
+.mapping-modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:0;width:560px;max-width:97vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:var(--shadow2);overflow:hidden;}
+.mapping-modal-head{background:#1a7a42;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.mapping-modal-head h3{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;color:#fff;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+.mapping-modal-body{flex:1;overflow-y:auto;padding:18px 20px;}
+.mapping-modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--surface);}
+.mapping-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+.mapping-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);background:var(--bg2);padding:6px 10px;border:1px solid var(--border);text-align:left;}
+.mapping-table td{padding:5px 10px;border:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;}
+.mapping-table tr:hover td{background:var(--row-hover);}
+.mapping-no-sensor{color:var(--muted);font-style:italic;font-weight:400;}
+.mapping-badge{display:inline-flex;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;margin-bottom:12px;}
+.mapping-badge-count{background:rgba(26,122,66,.12);color:var(--green);border:1px solid rgba(26,122,66,.25);}
+.mapping-badge-missing{background:rgba(201,122,8,.12);color:var(--accent);border:1px solid rgba(201,122,8,.25);}
 /* ── IMPORT DATE RANGE STEP ── */
 .idr-wrap{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
 .idr-head{background:var(--bg2);padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
@@ -486,6 +511,15 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
     <div class="exp-progress" id="expProgress">
       <p id="expProgressMsg">Fetching data…</p>
       <div class="progress-bar-wrap"><div class="progress-bar-fill" id="expProgressBar" style="width:0%"></div></div>
+    </div>
+    <div class="exp-name-toggle">
+      <span class="exp-name-toggle-label">Export Names As</span>
+      <span class="toggle-name-left" id="expToggleLabelLeft" style="color:var(--accent);">Machine Names</span>
+      <label class="toggle-sw">
+        <input type="checkbox" id="expUseSensorNames" onchange="updateExpToggleLabels()"/>
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-name-right" id="expToggleLabelRight">Sensor Names</span>
     </div>
     <div id="expBtns">
       <div class="exp-opt" onclick="doExport('sheetwise')">
@@ -676,7 +710,7 @@ body.dark .notes-caption{background:rgba(26,122,66,.1);}
 // ════════════════════════════════════════
 //  APPS SCRIPT ENDPOINT
 // ════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxZ661pOHB6sLgHF8w5LT9jrL0Y7eZxGBLgMeSUoqVquBvbi5xlQ8HeDkb9R8VHj54tBg/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzm7tLCCYYn850oec4hOVNgmbKnWw7H23woGBX1CiN3CdO0nUyZTpmMgKH0cszGEiHBfw/exec';
 
 // ════════════════════════════════════════
 //  TABS SCROLL BUTTONS
@@ -736,6 +770,78 @@ let SECTIONS = {
 let DISTRIBUTION_RULES = [];
 let NOTES_ENABLED = {};
 const notesCache = {};
+
+// ════════════════════════════════════════
+//  SENSOR NAME MAPPING
+// ════════════════════════════════════════
+// Default mapping from embedded Excel data (machine name → sensor name)
+const DEFAULT_SENSOR_MAP = {
+  "4FT PEELING-1":"EMSG070 Peeling-01","4FT PEELING-2":"EMSG072 Peeling-02",
+  "4FT PEELING-5":"EMSG076 Peeling-04","4FT PEELING-6":"EMSG074 Peeling-03",
+  "8FT PEELING":"EMSG078 Peeling 8FT","8ft Putty Machine":"EMSG098 PUTTY APPLICATOR",
+  "CALIBRATOR":"EMSG027 CALIBRATOR","CALIBRATOR-2":"EMSG042 CALIBRATOR-02","CALIBRATOR-3":"EMSG043 CALIBRATOR-03",
+  "Cooling tower":"EMSG041 COOLING TOWER",
+  "CORE COMPOSER-2":"EMSG045 CORE COMPOSER-02","CORE COMPOSER-3":"EMSG046 CORE COMPOSER-03",
+  "CORE COMPOSER-4":"EMSG047 CORE COMPOSER-04","CORE COMPOSER-5":"EMSG049 CORE COMPOSER-05",
+  "CORE COMPOSER-6":"EMSG018 CORE COMPOSER-06","CORE COMPOSER-7":"EMSG044 CORE COMPOSER-07",
+  "CORE COMPOSER-8":"EMSG048 CORE COMPOSER-08","CORE COMPOSER-9":"EMSG017 CORE COMPOSER-09",
+  "CORE COMPOSER-10":"EMSG016 CORE COMPOSER-10",
+  "DDSAW":"EMSG025 D.D.SAW",
+  "Dryer 1":"EMSG009 Dryer-01","Dryer 2":"EMSG010 Dryer-02","Dryer 3":"EMSG011 Dryer-03",
+  "Dryer 4":"EMSG012 DRYER-04","Dryer 5":"EMSG080 Dryer-05","Dryer 6":"EMSG081 Dryer-06",
+  "Dryer 7":"EMSG008 Dryer-07","Dryer 8":"EMSG082 Dryer-08",
+  "FINGER JOINTER-1":"EMSG014 FINGER JOINTER-01","FINGER JOINTER-2":"EMSG013 FINGER JOINTER-02",
+  "FINGER JOINTER-3":"EMSG015 FINGER JOINTER-03",
+  "GLUE SPREADER NO-1":"EMSG057 GLUE SPREADER NO-01","GLUE SPREADER NO-2":"EMSG056 GLUE SPREADER NO-02",
+  "GLUE SPREADER NO-3":"EMSG055 GLUE SPREADER NO-03","GLUE SPREADER NO-4":"EMSG054 GLUE SPREADER NO-04",
+  "GLUE SPREADER NO-5":"EMSG053 GLUE SPREADER NO-05","GLUE SPREADER NO-6":"EMSG052 GLUE SPREADER NO-06",
+  "GLUE SPREADER NO-7":"EMSG060 GLUE SPREADER NO-07","GLUE SPREADER NO-8":"EMSG059 GLUE SPREADER NO-08",
+  "GLUE SPREADER NO-9 (O/L)":"EMSG030 GLUE SPREADER NO-09","GLUE SPREADER NO-10 (O/L)":"EMSG020 GLUE SPREADER NO-10",
+  "HOT PRESS NO-1":"EMSG035 HOT PRESS NO-01","HOT PRESS NO-2":"EMSG036 HOT PRESS NO-02",
+  "HOT PRESS NO-3":"EMSG058 HOT PRESS NO-03","HOT PRESS NO-4":"EMSG034 HOT PRESS NO-04",
+  "HOT PRESS NO-5 (R/F)":"EMSG026 HOT PRESS NO-05","HOT PRESS NO-6":"EMSG033 HOT PRESS NO-06",
+  "PRE PRESS NO-1":"EMSG040 PRE PRESS NO-01","PRE PRESS NO-2":"EMSG039 PRE PRESS NO-02",
+  "PRE PRESS NO-3":"EMSG038 PRE PRESS NO-03","PRE PRESS NO-4":"EMSG037 PRE PRESS NO-04",
+  "PRE PRESS NO-5":"EMSG051 PRE PRESS NO-05","PRE PRESS NO-6":"EMSG028 PRE PRESS NO-06",
+  "PRE PRESS NO-7":"EMSG029 PRE PRESS NO-07",
+  "RESIN KETTLE-3":"EMSG050 RESIN KETTLE",
+  "SQUEEZER":"EMSG022 SQUEEZER MACHINE",
+  "STAMPING MACHINE-1":"EMSG031 STAMPING MACHINE-01","STAMPING MACHINE-2":"EMSG032 STAMPING MACHINE-02",
+  "STEEL WOOL MACHINE":"EMSG021 STEEL WOOL MACHINE",
+  "WBS-1":"EMSG024 WBS NO-01","WBS-2":"EMSG023 WBS NO-02",
+  "PRECUTTER":"EMSG096 PRE CUTTER"
+};
+
+// Load sensor map — populated from GAS config on init; DEFAULT_SENSOR_MAP as fallback
+function loadSensorMap() {
+  return Object.assign({}, DEFAULT_SENSOR_MAP);
+}
+function saveSensorMap() { /* no-op: persisted via saveAdminChanges → GAS */ }
+let SENSOR_MAP = loadSensorMap();
+
+// Resolve a display name → sensor name (or return original if no mapping)
+function resolveName(machineName) {
+  return SENSOR_MAP[machineName] || machineName;
+}
+// Whether export should use sensor names
+function usesSensorNames() {
+  return document.getElementById('expUseSensorNames')?.checked;
+}
+// Get the export display name for a machine
+function exportName(machineName) {
+  return usesSensorNames() ? resolveName(machineName) : machineName;
+}
+function updateExpToggleLabels() {
+  const on = document.getElementById('expUseSensorNames')?.checked;
+  const L = document.getElementById('expToggleLabelLeft');
+  const R = document.getElementById('expToggleLabelRight');
+  if (L) L.style.color = on ? 'var(--muted)' : 'var(--accent)';
+  if (R) R.style.color = on ? 'var(--green)' : 'var(--muted)';
+}
+
+// ════════════════════════════════════════
+//  (Sensor mapping is managed in Admin Panel → 🔗 Sensor Mapping tab)
+// ════════════════════════════════════════
 
 function getLinkedMap(name) {
   const sec = SECTIONS[name];
@@ -944,6 +1050,9 @@ async function init() {
     }
     if (res && Array.isArray(res.distributionRules)) DISTRIBUTION_RULES = res.distributionRules;
     if (res && res.notesEnabled && typeof res.notesEnabled === 'object') NOTES_ENABLED = res.notesEnabled;
+    if (res && res.sensorMap && typeof res.sensorMap === 'object' && Object.keys(res.sensorMap).length > 0) {
+      SENSOR_MAP = res.sensorMap;
+    }
   } catch(e) {
     configError = e.message || String(e);
   }
@@ -1159,8 +1268,19 @@ function buildPanel(name) {
     ${buildDistBanner(name)}
     ${notesOn ? `<div class="notes-caption"><span>📝 Optional- Click the notes icon to add remarks (eg. Species, Size, Thickness, Brand, Resin type, etc.) or Breakdown, Maintenance work etc</span></div>` : ''}
     ${name === 'Peeling Veneer Production' ? `<div style="margin:0;padding:10px 16px;background:repeating-linear-gradient(135deg,rgba(184,50,40,.07) 0px,rgba(184,50,40,.07) 6px,transparent 6px,transparent 14px);border-top:2px solid var(--red);display:flex;align-items:flex-start;gap:10px;">
-      <span style="font-size:18px;flex-shrink:0;margin-top:1px;">⚠️</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--red);letter-spacing:.3px;line-height:1.6;text-transform:uppercase;">Disclaimer!&nbsp; Please fill data according to whatever peeling machine numbers are there right now. Keep the cells blank for the machine which was sold. Unused rows will be deleted after some days.</span>
+ 
+
+<!--
+     <span style="font-size:18px;flex-shrink:0;margin-top:1px;">⚠️</span>
+
+
+
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--red);letter-spacing:.3px;line-height:1.6;text-transform:uppercase;">Disclaimer!&nbsp; Please fill data according to whatever peeling machine numbers are there right now. Keep the cells blank for the machine which was sold. Unused rows will be deleted after some days.</span> 
+
+-->
+
+
+
     </div>` : ''}
   </div>
 </div>`;
@@ -1628,6 +1748,7 @@ let adminActiveSec = null;
 let dragSrcIdx = null;
 let adminDistRules = [];
 let adminNotesEnabled = {};
+let adminSensorMap = {};
 
 function openAdmin() {
   adminDraft = {};
@@ -1649,6 +1770,7 @@ function openAdmin() {
     ratios: r.ratios ? [...r.ratios] : []
   }));
   adminNotesEnabled = Object.assign({}, NOTES_ENABLED);
+  adminSensorMap = Object.assign({}, SENSOR_MAP);
   adminActiveSec = Object.keys(adminDraft)[0] || null;
   renderAdminSidebar();
   if (adminActiveSec) renderAdminContent(adminActiveSec);
@@ -1665,6 +1787,10 @@ function renderAdminSidebar() {
     <div class="admin-sec-item${adminActiveSec==='__dist__'?' active':''}" onclick="adminSelectDistribute()" style="border-bottom:1px solid var(--border);margin-bottom:6px;padding-bottom:8px;">
       <span class="sec-label">&#x21C4; Merge &amp; Distribute</span>
       <span class="mcount">${distCount}</span>
+    </div>
+    <div class="admin-sec-item${adminActiveSec==='__sensormap__'?' active':''}" onclick="adminSelectSensorMap()" style="border-bottom:1px solid var(--border);margin-bottom:6px;padding-bottom:8px;">
+      <span class="sec-label">🔗 Sensor Mapping</span>
+      <span class="mcount">${Object.keys(adminSensorMap).length}</span>
     </div>
   ` + keys.map((name, idx) => `
     <div class="admin-sec-item${name===adminActiveSec?' active':''}" onclick="adminSelectSection('${escapeSingleQ(name)}')">
@@ -1966,7 +2092,7 @@ async function saveAdminChanges() {
     shifts: (r.shifts || [0,1,2]), ratios: (r.ratios || [])
   })).filter(r => r.sources.length > 0 && r.targets.length > 0);
   try {
-    const res = await gasPost({ action: 'saveSectionsConfig', sections: cleaned, renames, distributionRules: cleanedRules, notesEnabled: adminNotesEnabled });
+    const res = await gasPost({ action: 'saveSectionsConfig', sections: cleaned, renames, distributionRules: cleanedRules, notesEnabled: adminNotesEnabled, sensorMap: adminSensorMap });
     if (res?.success) {
       Object.entries(renames).forEach(([oldName, newName]) => {
         if (baseline[oldName]) { baseline[newName] = baseline[oldName]; delete baseline[oldName]; }
@@ -1978,6 +2104,7 @@ async function saveAdminChanges() {
       Object.keys(baseline).forEach(k => { if (!cleaned[k]) delete baseline[k]; });
       SECTIONS = cleaned; DISTRIBUTION_RULES = cleanedRules;
       NOTES_ENABLED = Object.assign({}, adminNotesEnabled);
+      SENSOR_MAP = Object.assign({}, adminSensorMap);
       SNAMES = Object.keys(SECTIONS);
       SNAMES.forEach(s => { if (!baseline[s]) baseline[s] = {}; });
       rebuildMachineMap(); buildTabs(); buildPanels(); setActive(SNAMES[0]);
@@ -2243,7 +2370,7 @@ function buildminitable2_xls(isoDates, from, to) {
     html += `</tr>`;
 
     mainMachines.forEach(({ displayName, machineIndices }) => {
-      html += `<tr><td class="mach">${displayName}</td><td class="uom">${uom}</td>`;
+      html += `<tr><td class="mach">${exportName(displayName)}</td><td class="uom">${uom}</td>`;
       isoDates.forEach(iso => {
         let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
@@ -2288,7 +2415,7 @@ function buildminitable2_xls(isoDates, from, to) {
     html += `</tr>`;
 
     sepMachines.forEach(({ displayName, machineIndices }) => {
-      html += `<tr><td class="sep-mach">${displayName}</td><td class="uom">${uom}</td>`;
+      html += `<tr><td class="sep-mach">${exportName(displayName)}</td><td class="uom">${uom}</td>`;
       isoDates.forEach(iso => {
         let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
@@ -2368,7 +2495,7 @@ function buildminitable2_xlsx(isoDates, from, to) {
     rows.push(hdr); rowIdx++;
 
     mainMachines.forEach(({ displayName, machineIndices }) => {
-      const row = [displayName, uom];
+      const row = [exportName(displayName), uom];
       isoDates.forEach(iso => {
         let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
@@ -2412,7 +2539,7 @@ function buildminitable2_xlsx(isoDates, from, to) {
     rows.push(totRow); rowIdx++;
 
     sepMachines.forEach(({ displayName, machineIndices }) => {
-      const row=[displayName,uom];
+      const row=[exportName(displayName),uom];
       isoDates.forEach(iso => {
         let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
@@ -2485,7 +2612,7 @@ function buildALPHABETICAL(isoDates) {
     put(ws,2,bc,'Shift 1',sShiftHdr());put(ws,2,bc+1,'Shift 2',sShiftHdr());put(ws,2,bc+2,'Shift 3',sShiftHdr());
   });
   machines.forEach((mname,mIdx)=>{
-    const row=3+mIdx;put(ws,row,1,mname,sMachineCell());
+    const row=3+mIdx;put(ws,row,1,exportName(mname),sMachineCell());
     isoDates.forEach((iso,di)=>{
       const bc=2+di*colsPerDate,lookup=MACHINE_SECTION_MAP[mname];
       if(!lookup){
@@ -2528,7 +2655,7 @@ function buildSheetwise(isoDates) {
     });
     rows.push(h2);
     mainMachines.forEach(({displayName,machineIndices}) => {
-      const row=[displayName,sec.uom];
+      const row=[exportName(displayName),sec.uom];
       isoDates.forEach(d => {
         SHIFTS.forEach((_,si)=>{
           let sum=null;
@@ -2556,7 +2683,7 @@ function buildSheetwise(isoDates) {
     });
     rows.push(tr);
     sepMachines.forEach(({displayName,machineIndices})=>{
-      const row=[displayName,sec.uom];
+      const row=[exportName(displayName),sec.uom];
       isoDates.forEach(d=>{
         SHIFTS.forEach((_,si)=>{
           let sum=null;
@@ -2685,6 +2812,110 @@ function adminSelectDistribute() {
   adminActiveSec = '__dist__';
   renderAdminSidebar();
   renderDistributeContent();
+}
+
+// ════════════════════════════════════════
+//  ADMIN — SENSOR MAPPING TAB
+// ════════════════════════════════════════
+function adminSelectSensorMap() {
+  adminActiveSec = '__sensormap__';
+  renderAdminSidebar();
+  renderSensorMapAdmin();
+}
+
+function renderSensorMapAdmin() {
+  const content = document.getElementById('adminContent');
+  // Collect all machines from adminDraft across all sections
+  const allMachines = [];
+  Object.entries(adminDraft).forEach(([secName, sec]) => {
+    (sec.machines || []).forEach(m => {
+      if (m && !allMachines.find(e => e.machine === m)) {
+        allMachines.push({ machine: m, section: secName });
+      }
+    });
+  });
+
+  const mapped   = allMachines.filter(e => adminSensorMap[e.machine]);
+  const unmapped = allMachines.filter(e => !adminSensorMap[e.machine]);
+
+  let rows = allMachines.map((e, i) => {
+    const sensor = adminSensorMap[e.machine] || '';
+    const hasVal = !!sensor;
+    return `<tr>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;padding:5px 8px;border:1px solid var(--border);white-space:nowrap;">${e.machine}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--muted);padding:5px 8px;border:1px solid var(--border);white-space:nowrap;">${e.section}</td>
+      <td style="padding:4px 6px;border:1px solid var(--border);">
+        <input type="text" data-machine="${e.machine.replace(/"/g,'&quot;')}"
+          class="sensor-map-input"
+          value="${sensor.replace(/"/g,'&quot;')}"
+          placeholder="Enter sensor name…"
+          oninput="adminSensorMap[this.dataset.machine]=this.value.trim(); renderAdminSidebar();"
+          style="width:100%;background:${hasVal ? 'rgba(26,122,66,.07)' : 'var(--bg)'};border:1.5px solid ${hasVal ? 'rgba(26,122,66,.3)' : 'var(--border)'};color:var(--text);padding:4px 8px;border-radius:5px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;outline:none;"
+          onfocus="this.style.borderColor='var(--admin)'"
+          onblur="this.style.borderColor=this.value?'rgba(26,122,66,.3)':'var(--border)';this.style.background=this.value?'rgba(26,122,66,.07)':'var(--bg)'"
+        />
+      </td>
+      <td style="padding:4px 6px;border:1px solid var(--border);text-align:center;">
+        ${sensor ? `<button onclick="adminSensorMap['${e.machine.replace(/'/g,"\\'")}']='';renderSensorMapAdmin();renderAdminSidebar();" title="Clear" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 5px;border-radius:4px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="admin-section-title" style="color:#1a7a42;">
+      🔗 Sensor Name Mapping
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;">
+      Map each machine name to its sensor identifier. Used when exporting with <strong>"Sensor Names"</strong> selected.
+      Machines without a mapping will export using their machine name. Click <strong>Save Changes</strong> to persist.
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+      <span style="background:rgba(26,122,66,.12);color:var(--green);border:1px solid rgba(26,122,66,.25);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">✅ ${mapped.length} mapped</span>
+      ${unmapped.length ? `<span style="background:rgba(201,122,8,.12);color:var(--accent);border:1px solid rgba(201,122,8,.25);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">⚠ ${unmapped.length} unmapped</span>` : ''}
+      <span style="flex:1;"></span>
+      <label style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;">
+        <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importSensorMapFromExcel(this.files[0])"/>
+        📄 Import Excel
+      </label>
+
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);background:var(--bg2);padding:6px 8px;border:1px solid var(--border);text-align:left;">MACHINE NAME</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);background:var(--bg2);padding:6px 8px;border:1px solid var(--border);text-align:left;">SECTION</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);background:var(--bg2);padding:6px 8px;border:1px solid var(--border);text-align:left;">SENSOR NAME</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);background:var(--bg2);padding:6px 8px;border:1px solid var(--border);width:36px;"></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function importSensorMapFromExcel(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      let count = 0;
+      rows.forEach(row => {
+        const machine = String(row[0] || '').trim();
+        const sensor  = String(row[1] || '').trim();
+        if (machine && sensor) { adminSensorMap[machine] = sensor; count++; }
+      });
+      if (!count) { showToast('⚠ No valid rows found. Col A = Machine, Col B = Sensor.', false, true); return; }
+      renderSensorMapAdmin();
+      renderAdminSidebar();
+      showToast(`✅ Imported ${count} mappings — click Save Changes to persist.`);
+    } catch(err) { showToast('❌ Failed to read file: ' + err.message, false, true); }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 function renderDistributeContent() {
