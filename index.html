@@ -545,6 +545,10 @@ input:checked + .toggle-slider:before{transform:translateX(20px);}
         <h4>📊 Alphabetical Format</h4>
         <p>All machines arranged alphabetically in one sheet, date-wise raw data</p>
       </div>
+      <div class="exp-opt" onclick="doExport('DAILYLOG')">
+        <h4>🗓️ Daily Log Format</h4>
+        <p>Flat row-by-row log: DATE · Machine Name · Shift · Production — one row per machine per shift</p>
+      </div>
     </div>
     <button class="btn btn-ghost" style="width:100%;margin-top:6px;justify-content:center;" onclick="closeExport()">Cancel</button>
   </div>
@@ -2311,6 +2315,7 @@ function buildExcel(fmt, isoDates) {
     if (fmt === 'minitable2_xls') buildminitable2(isoDates, 'xls');
     else if (fmt === 'minitable2_xlsx') buildminitable2(isoDates, 'xlsx');
     else if (fmt === 'ALPHABETICAL') buildALPHABETICAL(isoDates);
+    else if (fmt === 'DAILYLOG') buildDAILYLOG(isoDates);
     else buildSheetwise(isoDates);
   } catch(e) { showToast('❌ Export error: ' + e.message, true); console.error(e); }
 }
@@ -2630,6 +2635,67 @@ function buildALPHABETICAL(isoDates) {
   const fname=from===to?`Production_${toDisp(from).replace(/-/g,'_')}.xlsx`:`Production_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
   XLSX.writeFile(wb,fname,{bookType:'xlsx',cellStyles:true});
   showToast(`📥 Exported in Alphabetical format! (${isoDates.length} date${isoDates.length>1?'s':''})`);
+}
+
+// ════════════════════════════════════════
+//  DAILY LOG FORMAT
+//  Columns: DATE | Machine Name | SHIFT | PRODUCTION
+//  One row per machine × shift × date
+// ════════════════════════════════════════
+function buildDAILYLOG(isoDates) {
+  const NAVY='FF1A3A5C', STEEL='FF2E6DA4', WHITE='FFFFFFFF', GREY_BG='FFF2F2F2', BLACK='FF000000', BORDER_C='FFB0B0B0';
+  function bdr(){const b={style:'thin',color:{rgb:BORDER_C}};return{top:b,bottom:b,left:b,right:b};}
+  function sHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
+  function sMach(){return{font:{bold:true,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:GREY_BG}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()};}
+  function sDate(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:'FFDCE6F1'}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
+  function sShift(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:'FFE2EFDA'}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
+  function sData(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
+  function put(ws,r,c,v,s,t){const addr=XLSX.utils.encode_cell({r:r-1,c:c-1});ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s};}
+
+  const SHIFT_LABELS = ['1', '2', '3'];
+  const ws = {}, merges = [];
+
+  // Header row
+  put(ws,1,1,'DATE',sHdr());
+  put(ws,1,2,'Machine Name',sHdr());
+  put(ws,1,3,'SHIFT',sHdr());
+  put(ws,1,4,'PRODUCTION',sHdr());
+
+  let row = 2;
+  isoDates.forEach(iso => {
+    const disp = toDisp(iso);
+    SNAMES.forEach(secName => {
+      const sec = SECTIONS[secName]; if (!sec) return;
+      const sepIdxSet = getSepIdx(secName);
+      sec.machines.forEach((mname, mi) => {
+        if (sepIdxSet.has(mi)) return; // skip separator machines
+        SHIFTS.forEach((_, si) => {
+          const raw = gv(secName, iso, si, mi);
+          const val = raw !== '' ? parseFloat(raw) : '';
+          put(ws, row, 1, disp, sDate());
+          put(ws, row, 2, exportName(mname), sMach());
+          put(ws, row, 3, SHIFT_LABELS[si], sShift(), 'n');
+          put(ws, row, 4, val, sData(), typeof val === 'number' ? 'n' : 's');
+          row++;
+        });
+      });
+    });
+  });
+
+  const lastRow = row - 1;
+  ws['!ref'] = `A1:D${lastRow}`;
+  ws['!merges'] = merges;
+  ws['!cols'] = [{wch:14},{wch:30},{wch:8},{wch:14}];
+  ws['!rows'] = Array.from({length:lastRow}, () => ({hpt:18}));
+
+  const wb = {SheetNames:['Production Data'], Sheets:{'Production Data':ws}};
+  const from = document.getElementById('expDateFrom').value;
+  const to   = document.getElementById('expDateTo').value;
+  const fname = from === to
+    ? `DailyLog_${toDisp(from).replace(/-/g,'_')}.xlsx`
+    : `DailyLog_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
+  XLSX.writeFile(wb, fname, {bookType:'xlsx', cellStyles:true});
+  showToast(`📥 Exported in Daily Log format! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 // ════════════════════════════════════════
