@@ -240,6 +240,63 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 .pwd-error{color:var(--red);font-size:12px;margin-bottom:10px;display:none;}
 .pwd-error.show{display:block;}
 
+/* ── ENTRY PASSWORD SCREEN ── */
+#entryPwdScreen{
+  position:fixed;inset:0;z-index:99999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .45s ease;
+}
+#entryPwdScreen.hiding{opacity:0;pointer-events:none;}
+#entryPwdScreen.gone{display:none;}
+.ep-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:36px 32px 28px;width:360px;max-width:92vw;
+  box-shadow:0 8px 40px rgba(0,0,0,.14);
+  text-align:center;
+}
+.ep-icon{font-size:40px;margin-bottom:10px;}
+.ep-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;
+  letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin-bottom:4px;
+}
+.ep-sub{font-size:12px;color:var(--muted);margin-bottom:24px;letter-spacing:.3px;}
+.ep-field{position:relative;margin-bottom:14px;text-align:left;}
+.ep-field input{
+  width:100%;padding:10px 42px 10px 14px;
+  background:var(--bg);border:1.5px solid var(--border);color:var(--text);
+  border-radius:8px;font-family:'Barlow',sans-serif;font-size:15px;
+  outline:none;transition:border-color .15s;
+  letter-spacing:.5px;
+}
+.ep-field input:focus{border-color:var(--accent);}
+.ep-field input.ep-err{border-color:var(--red)!important;animation:epShake .28s ease;}
+@keyframes epShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.ep-eye{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:2px;
+}
+.ep-errmsg{color:var(--red);font-size:12px;margin-bottom:12px;min-height:16px;text-align:left;}
+.ep-btn{
+  width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;
+  letter-spacing:1px;padding:11px;border:none;border-radius:8px;cursor:pointer;
+  background:var(--accent);color:#fff;transition:background .14s,transform .1s;
+  text-transform:uppercase;
+}
+.ep-btn:hover{background:var(--accent2);}
+.ep-btn:active{transform:scale(.98);}
+.ep-loading-hint{
+  margin-top:18px;padding-top:14px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.ep-hint-spinner{
+  width:10px;height:10px;
+  border:2px solid var(--border2);border-top-color:var(--accent);
+  border-radius:50%;animation:ldSpin .7s linear infinite;flex-shrink:0;
+}
+.ep-hint-text{font-size:11px;color:var(--muted);letter-spacing:.2px;}
+.ep-ready-hint{font-size:11px;color:var(--green);letter-spacing:.2px;}
+
 .confirm-modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;width:360px;max-width:95vw;box-shadow:var(--shadow2);}
 .confirm-modal h4{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:var(--red);margin-bottom:10px;}
 .confirm-modal p{font-size:13px;color:var(--text);margin-bottom:18px;line-height:1.5;}
@@ -429,6 +486,26 @@ input:checked + .toggle-slider:before{transform:translateX(20px);}
 </style>
 </head>
 <body>
+
+<div id="entryPwdScreen">
+  <div class="ep-card">
+    <div class="ep-icon">🔒</div>
+    <div class="ep-title">Daily Production</div>
+    <div class="ep-sub">Enter your access password to continue</div>
+    <div class="ep-field">
+      <input type="password" id="epInput" placeholder="Password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')epSubmit()"
+        oninput="document.getElementById('epInput').classList.remove('ep-err');document.getElementById('epErrMsg').textContent=''"/>
+      <button class="ep-eye" id="epEye" onclick="epToggleEye()" title="Show/hide">👁</button>
+    </div>
+    <div class="ep-errmsg" id="epErrMsg"></div>
+    <button class="ep-btn" onclick="epSubmit()">Unlock →</button>
+    <div class="ep-loading-hint" id="epHint">
+      <div class="ep-hint-spinner" id="epSpinner"></div>
+      <span class="ep-hint-text" id="epHintText">Connecting to data source…</span>
+    </div>
+  </div>
+</div>
 
 <div id="loadingOverlay">
   <div class="ld-spinner"></div>
@@ -3881,7 +3958,84 @@ async function applyImport() {
   }
 }
 
-init();
+// ════════════════════════════════════════
+//  ENTRY PASSWORD GATE
+// ════════════════════════════════════════
+(function() {
+  const CORRECT_PWD = 'century#@2026';
+  let _initDone = false;
+  let _initPromise = null;
+  let _initResolve = null;
+
+  // Background-load promise — resolves when init() finishes
+  _initPromise = new Promise(res => { _initResolve = res; });
+
+  // Patch init so we know when it's done
+  const _origInit = init;
+  window._bgInitDone = false;
+  async function bgInit() {
+    try { await _origInit(); } catch(e) { /* already handled inside init */ }
+    window._bgInitDone = true;
+    updateEpHint();
+    if (_initResolve) _initResolve();
+  }
+
+  function updateEpHint() {
+    const hintText = document.getElementById('epHintText');
+    const spinner  = document.getElementById('epSpinner');
+    if (!hintText) return;
+    if (window._bgInitDone) {
+      if (spinner) spinner.style.display = 'none';
+      hintText.className = 'ep-ready-hint';
+      hintText.textContent = '✅ Data ready — enter password to unlock';
+    }
+  }
+
+  window.epToggleEye = function() {
+    const inp = document.getElementById('epInput');
+    const eye = document.getElementById('epEye');
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    if (eye) eye.textContent = inp.type === 'password' ? '👁' : '🙈';
+  };
+
+  window.epSubmit = function() {
+    const inp = document.getElementById('epInput');
+    const errMsg = document.getElementById('epErrMsg');
+    if (!inp) return;
+    const val = inp.value;
+    if (val === CORRECT_PWD) {
+      // Correct — wait for init to finish if not done, then reveal app
+      const screen = document.getElementById('entryPwdScreen');
+      if (window._bgInitDone) {
+        // Data already ready — smooth transition
+        screen.classList.add('hiding');
+        setTimeout(() => { screen.classList.add('gone'); }, 460);
+      } else {
+        // Data still loading — show the app's own loading overlay while waiting
+        screen.classList.add('hiding');
+        setTimeout(() => {
+          screen.classList.add('gone');
+          // The loadingOverlay is already showing underneath
+        }, 460);
+        // When init finishes, hide the loading overlay (init() does this itself)
+      }
+    } else {
+      inp.classList.add('ep-err');
+      if (errMsg) errMsg.textContent = '❌ Incorrect password. Please try again.';
+      inp.select();
+    }
+  };
+
+  // Hint updater poll (in case init finishes before DOM mutation fires)
+  const _hintInterval = setInterval(() => {
+    updateEpHint();
+    if (window._bgInitDone) clearInterval(_hintInterval);
+  }, 600);
+
+  // Start loading in background immediately (disguised by password screen)
+  bgInit();
+})();
 </script>
 </body>
 </html>
