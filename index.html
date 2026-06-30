@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Daily Production Recorder</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 
@@ -220,6 +221,10 @@ body.dark .save-bar{box-shadow:0 -2px 12px rgba(0,0,0,.4);}
 .admin-machine-row:hover{border-color:var(--border2);}
 .admin-machine-row .drag-handle{color:var(--muted);cursor:grab;font-size:14px;user-select:none;flex-shrink:0;}
 .admin-machine-row .drag-handle:active{cursor:grabbing;}
+.admin-machine-row .reface-toggle{display:flex;align-items:center;gap:4px;flex-shrink:0;cursor:pointer;padding:2px 6px;border-radius:5px;font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);user-select:none;transition:.12s;}
+.admin-machine-row .reface-toggle:hover{border-color:var(--accent);color:var(--accent);}
+.admin-machine-row .reface-toggle.active{background:rgba(201,122,8,.12);border-color:var(--accent);color:var(--accent);}
+.admin-machine-row .reface-toggle input{flex:0 0 auto;width:12px;height:12px;cursor:pointer;accent-color:var(--accent);}
 .admin-machine-row input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;outline:none;padding:0;}
 .admin-machine-row input:focus{color:var(--admin);}
 .admin-machine-row .del-m{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 2px;line-height:1;transition:.14s;flex-shrink:0;}
@@ -892,6 +897,10 @@ let SECTIONS = {
 
 let DISTRIBUTION_RULES = [];
 let NOTES_ENABLED = {};
+// Machines flagged as "Refacing" — shown as a separate block in entry panels & all reports.
+// Stored as a flat map of machineName -> true, persisted via saveSectionsConfig (key: refacingMachines).
+const DEFAULT_REFACING_MACHINES = { 'HOT PRESS NO-5 (R/F)': true, 'PRE PRESS NO-6': true, 'PRE PRESS NO-7': true, 'GLUE SPREADER NO-9 (O/L)': true, 'GLUE SPREADER NO-10 (O/L)': true };
+let REFACING_MACHINES = Object.assign({}, DEFAULT_REFACING_MACHINES);
 const notesCache = {};
 
 // ════════════════════════════════════════
@@ -1001,13 +1010,11 @@ function getMergedMachineRows(name) {
   return rows;
 }
 
-const SEPARATE_MACHINE_NAMES_GLOBAL = ['HOT PRESS NO-5 (R/F)'];
-
 function getSepIdx(name) {
   if (!SECTIONS[name]) return new Set();
   return new Set(
     SECTIONS[name].machines
-      .map((m, i) => SEPARATE_MACHINE_NAMES_GLOBAL.includes(m) ? i : -1)
+      .map((m, i) => REFACING_MACHINES[m] ? i : -1)
       .filter(i => i !== -1)
   );
 }
@@ -1175,6 +1182,9 @@ async function init() {
     if (res && res.notesEnabled && typeof res.notesEnabled === 'object') NOTES_ENABLED = res.notesEnabled;
     if (res && res.sensorMap && typeof res.sensorMap === 'object' && Object.keys(res.sensorMap).length > 0) {
       SENSOR_MAP = res.sensorMap;
+    }
+    if (res && res.refacingMachines && typeof res.refacingMachines === 'object') {
+      REFACING_MACHINES = res.refacingMachines;
     }
   } catch(e) {
     configError = e.message || String(e);
@@ -1872,6 +1882,7 @@ let dragSrcIdx = null;
 let adminDistRules = [];
 let adminNotesEnabled = {};
 let adminSensorMap = {};
+let adminRefacingMachines = {};
 
 function openAdmin() {
   adminDraft = {};
@@ -1894,6 +1905,7 @@ function openAdmin() {
   }));
   adminNotesEnabled = Object.assign({}, NOTES_ENABLED);
   adminSensorMap = Object.assign({}, SENSOR_MAP);
+  adminRefacingMachines = Object.assign({}, REFACING_MACHINES);
   adminActiveSec = Object.keys(adminDraft)[0] || null;
   renderAdminSidebar();
   if (adminActiveSec) renderAdminContent(adminActiveSec);
@@ -2014,12 +2026,34 @@ function renderAdminContent(name) {
 }
 
 function buildMachineRow(secName, mName, mi) {
+  const isRef = !!adminRefacingMachines[mName];
   return `<div class="admin-machine-row" draggable="true" data-mi="${mi}"
     ondragstart="dragStart(event,${mi})" ondragover="dragOver(event)" ondrop="dragDrop(event,'${escapeSingleQ(secName)}')" ondragend="dragEnd(event)">
     <span class="drag-handle">⠿</span>
-    <input type="text" value="${mName}" oninput="adminDraft['${escapeSingleQ(secName)}'].machines[${mi}]=this.value" />
+    <input type="text" value="${mName}" oninput="renameMachineInPlace('${escapeSingleQ(secName)}',${mi},this.value)" />
+    <label class="reface-toggle${isRef ? ' active' : ''}" title="Show this machine separately as Refacing in entry panel & all reports">
+      <input type="checkbox" ${isRef ? 'checked' : ''} onchange="toggleRefacingMachine('${escapeSingleQ(secName)}',${mi},this.checked)"/>
+      Refacing
+    </label>
     <button class="del-m" onclick="deleteMachine('${escapeSingleQ(secName)}',${mi})" title="Remove">✕</button>
   </div>`;
+}
+
+function toggleRefacingMachine(secName, mi, checked) {
+  const mName = adminDraft[secName].machines[mi];
+  if (checked) adminRefacingMachines[mName] = true;
+  else delete adminRefacingMachines[mName];
+  refreshMachineList(secName);
+}
+
+function renameMachineInPlace(secName, mi, newVal) {
+  const oldName = adminDraft[secName].machines[mi];
+  adminDraft[secName].machines[mi] = newVal;
+  // Keep the refacing flag attached to the machine identity as its name changes live.
+  if (oldName !== newVal && Object.prototype.hasOwnProperty.call(adminRefacingMachines, oldName)) {
+    delete adminRefacingMachines[oldName];
+    adminRefacingMachines[newVal] = true;
+  }
 }
 
 function refreshMachineList(name) {
@@ -2042,7 +2076,9 @@ function addMachine(name) {
 }
 
 function deleteMachine(name, mi) {
+  const removed = adminDraft[name].machines[mi];
   adminDraft[name].machines.splice(mi, 1);
+  if (removed) delete adminRefacingMachines[removed];
   (adminDraft[name].linkedGroups || []).forEach(g => {
     g.members = g.members.filter(mm => adminDraft[name].machines.includes(mm));
   });
@@ -2196,6 +2232,7 @@ async function saveAdminChanges() {
   if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<span class="btn-spinner"></span> Saving…'; }
   const cleaned = {}, renames = {};
   let warn = false;
+  const allMachineNames = new Set();
   Object.entries(adminDraft).forEach(([currentName, v]) => {
     const name = currentName.trim();
     if (!name) return;
@@ -2207,7 +2244,10 @@ async function saveAdminChanges() {
       .map(g => ({ label: (g.label || '').trim(), members: (g.members || []).filter(m => machines.includes(m)) }))
       .filter(g => g.members.length >= 2);
     cleaned[name] = { machines, uom: (v.uom || 'PCS').trim(), linkedGroups };
+    machines.forEach(m => allMachineNames.add(m));
   });
+  const cleanedRefacing = {};
+  Object.keys(adminRefacingMachines).forEach(m => { if (allMachineNames.has(m)) cleanedRefacing[m] = true; });
   const cleanedRules = (adminDistRules || []).map(r => ({
     id: r.id, name: (r.name || '').trim(), enabled: r.enabled !== false,
     sources: (r.sources || []).filter(s => s.section && s.machine),
@@ -2215,7 +2255,7 @@ async function saveAdminChanges() {
     shifts: (r.shifts || [0,1,2]), ratios: (r.ratios || [])
   })).filter(r => r.sources.length > 0 && r.targets.length > 0);
   try {
-    const res = await gasPost({ action: 'saveSectionsConfig', sections: cleaned, renames, distributionRules: cleanedRules, notesEnabled: adminNotesEnabled, sensorMap: adminSensorMap });
+    const res = await gasPost({ action: 'saveSectionsConfig', sections: cleaned, renames, distributionRules: cleanedRules, notesEnabled: adminNotesEnabled, sensorMap: adminSensorMap, refacingMachines: cleanedRefacing });
     if (res?.success) {
       Object.entries(renames).forEach(([oldName, newName]) => {
         if (baseline[oldName]) { baseline[newName] = baseline[oldName]; delete baseline[oldName]; }
@@ -2228,6 +2268,7 @@ async function saveAdminChanges() {
       SECTIONS = cleaned; DISTRIBUTION_RULES = cleanedRules;
       NOTES_ENABLED = Object.assign({}, adminNotesEnabled);
       SENSOR_MAP = Object.assign({}, adminSensorMap);
+      REFACING_MACHINES = Object.assign({}, cleanedRefacing);
       SNAMES = Object.keys(SECTIONS);
       SNAMES.forEach(s => { if (!baseline[s]) baseline[s] = {}; });
       rebuildMachineMap(); buildTabs(); buildPanels(); setActive(SNAMES[0]);
@@ -2550,11 +2591,13 @@ function setProgressUI(done, total, msg) {
 
 function buildExcel(fmt, isoDates) {
   try {
-    if (fmt === 'minitable2_xls') buildminitable2(isoDates, 'xls');
-    else if (fmt === 'minitable2_xlsx') buildminitable2(isoDates, 'xlsx');
-    else if (fmt === 'ALPHABETICAL') buildALPHABETICAL(isoDates);
-    else if (fmt === 'DAILYLOG') buildDAILYLOG(isoDates);
-    else buildSheetwise(isoDates);
+    let p;
+    if (fmt === 'minitable2_xls') { buildminitable2(isoDates, 'xls'); return; }
+    else if (fmt === 'minitable2_xlsx') { buildminitable2(isoDates, 'xlsx'); return; }
+    else if (fmt === 'ALPHABETICAL') p = buildALPHABETICAL(isoDates);
+    else if (fmt === 'DAILYLOG') p = buildDAILYLOG(isoDates);
+    else p = buildSheetwise(isoDates);
+    if (p && p.catch) p.catch(e => { showToast('❌ Export error: ' + e.message, true); console.error(e); });
   } catch(e) { showToast('❌ Export error: ' + e.message, true); console.error(e); }
 }
 
@@ -2564,7 +2607,13 @@ function buildExcel(fmt, isoDates) {
 function buildminitable2(isoDates, format) {
   const from = document.getElementById('expDateFrom').value;
   const to   = document.getElementById('expDateTo').value;
-  if (format === 'xlsx') { buildminitable2_xlsx(isoDates, from, to); return; }
+  if (format === 'xlsx') {
+    buildminitable2_xlsx(isoDates, from, to).catch(e => {
+      console.error('Mini-table XLSX export error:', e);
+      showToast('❌ Export error: ' + e.message, true);
+    });
+    return;
+  }
   buildminitable2_xls(isoDates, from, to);
 }
 
@@ -2706,14 +2755,75 @@ function buildminitable2_xls(isoDates, from, to) {
   showToast(`📥 Downloaded in mini-table format (XLS)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
-function buildminitable2_xlsx(isoDates, from, to) {
-  const wb = XLSX.utils.book_new();
-  const rows = [];
-  const merges = [];
-  let rowIdx = 0;
+// UOM_DROPDOWN_SECTION_KEYWORDS: section-name keywords that get the in-Excel
+// "Master UOM selector" dropdown (SQM / CBM / PCS) in every export format,
+// instead of a fixed UOM column. These are all SQM-based veneer measurements,
+// so the same Conversion sheet (SQM x 0.0018 = CBM, SQM / 2.98 = PCS) applies.
+// Add more keywords here to extend the dropdown to other sections later.
+const UOM_DROPDOWN_SECTION_KEYWORDS = ['core composer', 'finger jointer', 'l jointer'];
+const CORE_COMPOSER_UOM_OPTIONS = ['SQM','CBM','PCS'];
+// Robust matcher: doesn't rely on exact casing/spacing of the section name,
+// so it still works if your SECTIONS object names this section slightly differently
+// (e.g. different case, extra spaces, or a different machine count) — and works
+// for any new section (e.g. "L Jointer-wise production") fetched live from the
+// Google Sheet even if it isn't in this file's local fallback SECTIONS object.
+function isCoreComposerSection(name) {
+  if (!name) return false;
+  // Normalize hyphens/underscores to spaces too, so "L-Jointer", "L_Jointer",
+  // and "L Jointer" all match the same keyword (previously only the bare-space
+  // form matched, so "L-JOINTER PRODUCTION" silently fell through and never
+  // got the UOM dropdown).
+  const norm = String(name).toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return UOM_DROPDOWN_SECTION_KEYWORDS.some(kw => norm.includes(kw));
+}
+
+function addCoreUomDropdown(cell) {
+  cell.dataValidation = {
+    type: 'list',
+    allowBlank: false,
+    formulae: [`"${CORE_COMPOSER_UOM_OPTIONS.join(',')}"`],
+    showErrorMessage: true,
+    errorTitle: 'Invalid UOM',
+    error: 'Choose SQM, CBM, or PCS.'
+  };
+}
+function coreConvFormula(uomCellAddr, raw) {
+  return `${raw}*VLOOKUP(${uomCellAddr},Conversion!$A$2:$B$4,2,FALSE)`;
+}
+function addConversionSheet(wb) {
+  const ws = wb.addWorksheet('Conversion');
+  ws.getCell(1,1).value = 'UOM';
+  ws.getCell(1,2).value = 'Multiply Factor (x raw SQM value)';
+  ws.getCell(1,3).value = 'Notes';
+  ws.getCell(2,1).value = 'SQM'; ws.getCell(2,2).value = 1;        ws.getCell(2,3).value = 'Default unit - no conversion';
+  ws.getCell(3,1).value = 'CBM'; ws.getCell(3,2).value = 0.0018;   ws.getCell(3,3).value = 'SQM x 0.0018 = CBM';
+  ws.getCell(4,1).value = 'PCS'; ws.getCell(4,2).value = 1/2.98;   ws.getCell(4,3).value = 'SQM / 2.98 = PCS';
+  for (let c=1;c<=3;c++) { const cell = ws.getCell(1,c); cell.font = { bold:true }; }
+  ws.getColumn(1).width = 10; ws.getColumn(2).width = 30; ws.getColumn(3).width = 32;
+  return ws;
+}
+function downloadXlsxBuffer(buf, fname) {
+  const blob = new Blob([buf], { type:'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+async function buildminitable2_xlsx(isoDates, from, to) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Production Report');
+  let rowIdx = 1; // ExcelJS is 1-indexed
+
+  const HDR_FILL  = { type:'pattern', pattern:'solid', fgColor:{argb:'FFC5D9F1'} };
+  const TITLE_FILL= { type:'pattern', pattern:'solid', fgColor:{argb:'FF5B9BD5'} };
+  const TOT_FILL  = { type:'pattern', pattern:'solid', fgColor:{argb:'FFB4E0DE'} };
+  const thinBorder = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
 
   SNAMES.forEach(name => {
     const sec = SECTIONS[name]; if (!sec) return;
+    const isCore = isCoreComposerSection(name);
     const uom = sec.uom || '';
     const sepIdxSet = getSepIdx(name);
     const mergedRows = getMergedMachineRows(name).filter(r => isMachineSelected(r.displayName));
@@ -2723,25 +2833,81 @@ function buildminitable2_xlsx(isoDates, from, to) {
     const notesOn = !!NOTES_ENABLED[name];
     const totalCols = 2 + isoDates.length * 4;
 
-    const titleRow = [name.toUpperCase() + ' PRODUCTION'];
-    for (let i=1;i<totalCols;i++) titleRow.push('');
-    rows.push(titleRow);
-    merges.push({ s:{r:rowIdx,c:0}, e:{r:rowIdx,c:totalCols-1} });
+    // ── Title row ──
+    const titleCell = ws.getCell(rowIdx, 1);
+    titleCell.value = name.toUpperCase() + ' PRODUCTION';
+    titleCell.font = { bold:true, color:{argb:'FFFFFFFF'} };
+    titleCell.fill = TITLE_FILL;
+    titleCell.alignment = { horizontal:'center' };
+    ws.mergeCells(rowIdx, 1, rowIdx, totalCols);
     rowIdx++;
 
-    const dateRow = ['',''];
-    isoDates.forEach(iso => { dateRow.push(toDisp(iso),'','',''); });
-    rows.push(dateRow);
-    isoDates.forEach((_,di) => { merges.push({ s:{r:rowIdx,c:2+di*4}, e:{r:rowIdx,c:2+di*4+3} }); });
+    // ── Master UOM selector row (UOM-dropdown sections only — ONE dropdown for the whole section) ──
+    let masterUomAddr = null;
+    if (isCore) {
+      const selRow = rowIdx;
+      const lbl = ws.getCell(selRow, 1);
+      lbl.value = `Select UOM for all ${name} machines:`;
+      lbl.font = { bold:true, italic:true };
+      ws.mergeCells(selRow, 1, selRow, 2);
+      const ddCell = ws.getCell(selRow, 3);
+      ddCell.value = 'SQM';
+      ddCell.font = { bold:true };
+      ddCell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFF2CC'} };
+      ddCell.alignment = { horizontal:'center' };
+      ddCell.border = thinBorder;
+      addCoreUomDropdown(ddCell);
+      masterUomAddr = `$${ws.getColumn(3).letter}$${selRow}`;
+      rowIdx++;
+    }
+
+    // ── Date row ──
+    const dateRowNum = rowIdx;
+    isoDates.forEach((iso, di) => {
+      const baseCol = 3 + di*4;
+      const c = ws.getCell(dateRowNum, baseCol);
+      c.value = toDisp(iso);
+      c.fill = HDR_FILL; c.alignment = { horizontal:'center' }; c.font = { bold:false };
+      ws.mergeCells(dateRowNum, baseCol, dateRowNum, baseCol+3);
+    });
     rowIdx++;
 
-    const hdr = ['Machine Name','UOM'];
-    isoDates.forEach(() => { hdr.push('Shift 1 (8hr:7am-3pm/12hr:7am-7pm)','Shift 2 (8hr:3pm-11pm/12hr:7pm-7am)','Shift 3 (8hr:11pm-7am)','Total'); });
-    rows.push(hdr); rowIdx++;
+    // ── Column header row ──
+    const colHdrRowNum = rowIdx;
+    ws.getCell(colHdrRowNum,1).value = 'Machine Name';
+    ws.getCell(colHdrRowNum,2).value = 'UOM';
+    isoDates.forEach((iso, di) => {
+      const baseCol = 3 + di*4;
+      ws.getCell(colHdrRowNum, baseCol).value   = 'Shift 1 (8hr:7am-3pm/12hr:7am-7pm)';
+      ws.getCell(colHdrRowNum, baseCol+1).value = 'Shift 2 (8hr:3pm-11pm/12hr:7pm-7am)';
+      ws.getCell(colHdrRowNum, baseCol+2).value = 'Shift 3 (8hr:11pm-7am)';
+      ws.getCell(colHdrRowNum, baseCol+3).value = 'Total';
+    });
+    for (let c=1;c<=totalCols;c++) {
+      const cell = ws.getCell(colHdrRowNum, c);
+      cell.font = { bold:true }; cell.fill = HDR_FILL; cell.alignment = { horizontal:'center', wrapText:true }; cell.border = thinBorder;
+    }
+    rowIdx++;
 
-    mainMachines.forEach(({ displayName, machineIndices }) => {
-      const row = [exportName(displayName), uom];
-      isoDates.forEach(iso => {
+    const mainMachineRowNums = [];
+
+    function writeMachineRow(displayName, machineIndices) {
+      const r = rowIdx;
+      const nameCell = ws.getCell(r,1);
+      nameCell.value = exportName(displayName);
+      nameCell.border = thinBorder;
+
+      const uomCell = ws.getCell(r,2);
+      uomCell.border = thinBorder;
+      uomCell.alignment = { horizontal:'center' };
+      if (isCore) {
+        uomCell.value = { formula: masterUomAddr };
+      } else {
+        uomCell.value = uom;
+      }
+
+      isoDates.forEach((iso, di) => {
+        const baseCol = 3 + di*4;
         let sa=null,sb=null,sc=null;
         machineIndices.forEach(mi => {
           const a=gv(name,iso,0,mi),b=gv(name,iso,1,mi),c=gv(name,iso,2,mi);
@@ -2749,131 +2915,205 @@ function buildminitable2_xlsx(isoDates, from, to) {
           if(b!=='')sb=(sb||0)+parseFloat(b);
           if(c!=='')sc=(sc||0)+parseFloat(c);
         });
-        row.push(sa!==null?sa:'',sb!==null?sb:'',sc!==null?sc:'',(sa||0)+(sb||0)+(sc||0));
+        const rawA = sa!==null?sa:0, rawB = sb!==null?sb:0, rawC = sc!==null?sc:0;
+        const c1 = ws.getCell(r, baseCol), c2 = ws.getCell(r, baseCol+1), c3 = ws.getCell(r, baseCol+2), c4 = ws.getCell(r, baseCol+3);
+
+        if (isCore) {
+          c1.value = sa!==null ? { formula: coreConvFormula(masterUomAddr, rawA) } : '';
+          c2.value = sb!==null ? { formula: coreConvFormula(masterUomAddr, rawB) } : '';
+          c3.value = sc!==null ? { formula: coreConvFormula(masterUomAddr, rawC) } : '';
+          c4.value = { formula: `${c1.address}+${c2.address}+${c3.address}` };
+        } else {
+          c1.value = sa!==null?sa:'';
+          c2.value = sb!==null?sb:'';
+          c3.value = sc!==null?sc:'';
+          c4.value = rawA+rawB+rawC;
+        }
+        [c1,c2,c3,c4].forEach(c=>{ c.border = thinBorder; c.alignment = { horizontal:'center' }; });
       });
-      rows.push(row); rowIdx++;
+      rowIdx++;
+
       if (notesOn) {
         const hasAnyNote = isoDates.some(iso => {
           const disp=toDisp(iso);
           return machineIndices.some(mi=>[0,1,2].some(si=>getNote(name,disp,si,mi)));
         });
         if (hasAnyNote) {
-          const rmk=['Remarks',''];
-          isoDates.forEach(iso => {
+          ws.getCell(rowIdx,1).value = 'Remarks';
+          isoDates.forEach((iso, di) => {
+            const baseCol = 3 + di*4;
             const disp=toDisp(iso);
-            const n0=machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
-            const n1=machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
-            const n2=machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
-            rmk.push(n0,n1,n2,'');
+            ws.getCell(rowIdx, baseCol).value   = machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
+            ws.getCell(rowIdx, baseCol+1).value = machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
+            ws.getCell(rowIdx, baseCol+2).value = machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
           });
-          rows.push(rmk); rowIdx++;
+          rowIdx++;
         }
       }
+      return r;
+    }
+
+    mainMachines.forEach(({ displayName, machineIndices }) => {
+      mainMachineRowNums.push(writeMachineRow(displayName, machineIndices));
     });
 
-    const totRow=['','TOTAL :-'];
-    isoDates.forEach(iso => {
-      let cSa=0,cSb=0,cSc=0;
-      mainMachines.forEach(({machineIndices})=>machineIndices.forEach(mi=>{
-        cSa+=parseFloat(gv(name,iso,0,mi))||0;
-        cSb+=parseFloat(gv(name,iso,1,mi))||0;
-        cSc+=parseFloat(gv(name,iso,2,mi))||0;
-      }));
-      totRow.push(cSa,cSb,cSc,cSa+cSb+cSc);
+    // ── Section total row ──
+    const totRowNum = rowIdx;
+    ws.getCell(totRowNum,2).value = 'TOTAL :-';
+    isoDates.forEach((iso, di) => {
+      const baseCol = 3 + di*4;
+      if (isCore && mainMachineRowNums.length) {
+        const first = mainMachineRowNums[0], last = mainMachineRowNums[mainMachineRowNums.length-1];
+        [0,1,2,3].forEach(off => {
+          const colLetter = ws.getColumn(baseCol+off).letter;
+          ws.getCell(totRowNum, baseCol+off).value = { formula: `SUM(${colLetter}${first}:${colLetter}${last})` };
+        });
+      } else {
+        let cSa=0,cSb=0,cSc=0;
+        mainMachines.forEach(({machineIndices})=>machineIndices.forEach(mi=>{
+          cSa+=parseFloat(gv(name,iso,0,mi))||0;
+          cSb+=parseFloat(gv(name,iso,1,mi))||0;
+          cSc+=parseFloat(gv(name,iso,2,mi))||0;
+        }));
+        ws.getCell(totRowNum, baseCol).value   = cSa;
+        ws.getCell(totRowNum, baseCol+1).value = cSb;
+        ws.getCell(totRowNum, baseCol+2).value = cSc;
+        ws.getCell(totRowNum, baseCol+3).value = cSa+cSb+cSc;
+      }
     });
-    rows.push(totRow); rowIdx++;
+    for (let c=1;c<=totalCols;c++) {
+      const cell = ws.getCell(totRowNum, c);
+      cell.font = { bold:true }; cell.fill = TOT_FILL; cell.alignment = { horizontal:'center' }; cell.border = thinBorder;
+    }
+    rowIdx++;
 
     sepMachines.forEach(({ displayName, machineIndices }) => {
-      const row=[exportName(displayName),uom];
-      isoDates.forEach(iso => {
-        let sa=null,sb=null,sc=null;
-        machineIndices.forEach(mi => {
-          const a=gv(name,iso,0,mi),b=gv(name,iso,1,mi),c=gv(name,iso,2,mi);
-          if(a!=='')sa=(sa||0)+parseFloat(a);
-          if(b!=='')sb=(sb||0)+parseFloat(b);
-          if(c!=='')sc=(sc||0)+parseFloat(c);
-        });
-        row.push(sa!==null?sa:'',sb!==null?sb:'',sc!==null?sc:'',(sa||0)+(sb||0)+(sc||0));
-      });
-      rows.push(row); rowIdx++;
-      if (notesOn) {
-        const hasAnyNote=isoDates.some(iso=>{
-          const disp=toDisp(iso);
-          return machineIndices.some(mi=>[0,1,2].some(si=>getNote(name,disp,si,mi)));
-        });
-        if (hasAnyNote) {
-          const rmk=['Remarks',''];
-          isoDates.forEach(iso=>{
-            const disp=toDisp(iso);
-            const n0=machineIndices.map(mi=>getNote(name,disp,0,mi)).filter(Boolean).join(' / ');
-            const n1=machineIndices.map(mi=>getNote(name,disp,1,mi)).filter(Boolean).join(' / ');
-            const n2=machineIndices.map(mi=>getNote(name,disp,2,mi)).filter(Boolean).join(' / ');
-            rmk.push(n0,n1,n2,'');
-          });
-          rows.push(rmk); rowIdx++;
-        }
-      }
+      writeMachineRow(displayName, machineIndices);
     });
-    rows.push([]); rowIdx++;
+
+    rowIdx++; // blank separator row between sections
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!merges'] = merges;
-  ws['!cols'] = [{wch:28},{wch:7},...isoDates.flatMap(()=>[{wch:12},{wch:12},{wch:12},{wch:10}])];
-  XLSX.utils.book_append_sheet(wb, ws, 'Production Report');
+  ws.getColumn(1).width = 28;
+  ws.getColumn(2).width = 7;
+  for (let di=0; di<isoDates.length; di++) {
+    ws.getColumn(3+di*4).width = 12;
+    ws.getColumn(4+di*4).width = 12;
+    ws.getColumn(5+di*4).width = 12;
+    ws.getColumn(6+di*4).width = 10;
+  }
+
+  addConversionSheet(wb);
+
+  const buf = await wb.xlsx.writeBuffer();
   const fname = from===to
     ? `Production_Report_${toDisp(from).replace(/-/g,'_')}.xlsx`
     : `Production_Report_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
-  XLSX.writeFile(wb, fname);
+  downloadXlsxBuffer(buf, fname);
   showToast(`📥 Downloaded in mini-table format (XLSX)! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 // ════════════════════════════════════════
 //  ALPHABETICAL FORMAT
 // ════════════════════════════════════════
-function buildALPHABETICAL(isoDates) {
-  const NAVY='FF1A3A5C',STEEL='FF2E6DA4',WHITE='FFFFFFFF',GREY_BG='FFF2F2F2',BLACK='FF000000',BORDER_C='FFB0B0B0';
-  function bdr(){const b={style:'thin',color:{rgb:BORDER_C}};return{top:b,bottom:b,left:b,right:b};}
-  function sDateHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function sShiftHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:10,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:STEEL}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function sMachineCell(){return{font:{bold:true,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:GREY_BG}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()};}
-  function sHeaderLabel(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()};}
-  function sData(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function put(ws,r,c,v,s,t){const addr=XLSX.utils.encode_cell({r:r-1,c:c-1});ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s};}
-  const machines=getALPHABETICALMachineList().filter(isMachineSelected),ws={},merges=[];
-  const colsPerDate=3;
-  const rowHts=[{hpt:22},{hpt:18}];machines.forEach(()=>rowHts.push({hpt:18}));
-  const colWidths=[{wch:26}];
-  isoDates.forEach(()=>{ colWidths.push({wch:10},{wch:10},{wch:10}); });
-  put(ws,1,1,'Date',sHeaderLabel());
-  isoDates.forEach((iso,di)=>{
-    const disp=toDisp(iso),bc=2+di*colsPerDate;
-    put(ws,1,bc,disp,sDateHdr());put(ws,1,bc+1,'',sDateHdr());put(ws,1,bc+2,'',sDateHdr());
-    merges.push({s:{r:0,c:bc-1},e:{r:0,c:bc+1}});
+async function buildALPHABETICAL(isoDates) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Production Data');
+  const NAVY='FF1A3A5C', STEEL='FF2E6DA4', WHITE='FFFFFFFF', GREY_BG='FFF2F2F2';
+  const hdrFill = { type:'pattern', pattern:'solid', fgColor:{argb:NAVY} };
+  const shiftHdrFill = { type:'pattern', pattern:'solid', fgColor:{argb:STEEL} };
+  const machFill = { type:'pattern', pattern:'solid', fgColor:{argb:GREY_BG} };
+  const thinBorder = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+
+  const machines = getALPHABETICALMachineList().filter(isMachineSelected);
+  const colsPerDate = 3;
+
+  // ── Master UOM selector row (Core Composer / Finger Jointer / L Jointer — ONE dropdown for the whole sheet) ──
+  const selRow = 1;
+  ws.getCell(selRow,1).value = 'Select UOM for Core Composer / Finger Jointer / L Jointer machines:';
+  ws.getCell(selRow,1).font = { bold:true, italic:true };
+  ws.mergeCells(selRow,1,selRow,2);
+  const ddCell = ws.getCell(selRow,3);
+  ddCell.value = 'SQM';
+  ddCell.font = { bold:true };
+  ddCell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFF2CC'} };
+  ddCell.alignment = { horizontal:'center' };
+  addCoreUomDropdown(ddCell);
+  const masterUomAddr = `$${ws.getColumn(3).letter}$${selRow}`;
+
+  const hdrRow1 = 2, hdrRow2 = 3, dataStartRow = 4;
+
+  ws.getCell(hdrRow1,1).value = 'Date';
+  ws.getCell(hdrRow1,2).value = 'UOM';
+  isoDates.forEach((iso, di) => {
+    const bc = 3 + di*colsPerDate;
+    ws.getCell(hdrRow1, bc).value = toDisp(iso);
+    ws.mergeCells(hdrRow1, bc, hdrRow1, bc+2);
   });
-  put(ws,2,1,'Machine Name',sShiftHdr());
-  isoDates.forEach((_,di)=>{
-    const bc=2+di*colsPerDate;
-    put(ws,2,bc,'Shift 1',sShiftHdr());put(ws,2,bc+1,'Shift 2',sShiftHdr());put(ws,2,bc+2,'Shift 3',sShiftHdr());
+  ws.getCell(hdrRow2,1).value = 'Machine Name';
+  isoDates.forEach((_, di) => {
+    const bc = 3 + di*colsPerDate;
+    ws.getCell(hdrRow2, bc).value   = 'Shift 1';
+    ws.getCell(hdrRow2, bc+1).value = 'Shift 2';
+    ws.getCell(hdrRow2, bc+2).value = 'Shift 3';
   });
-  machines.forEach((mname,mIdx)=>{
-    const row=3+mIdx;put(ws,row,1,exportName(mname),sMachineCell());
-    isoDates.forEach((iso,di)=>{
-      const bc=2+di*colsPerDate,lookup=MACHINE_SECTION_MAP[mname];
-      if(!lookup){
-        put(ws,row,bc,'',sData());put(ws,row,bc+1,'',sData());put(ws,row,bc+2,'',sData());
+
+  machines.forEach((mname, mIdx) => {
+    const row = dataStartRow + mIdx;
+    const lookup = MACHINE_SECTION_MAP[mname];
+    const isCore = !!lookup && isCoreComposerSection(lookup.section);
+    const secUom = lookup ? (SECTIONS[lookup.section]?.uom || '') : '';
+
+    ws.getCell(row,1).value = exportName(mname);
+    const uomCell = ws.getCell(row,2);
+    uomCell.value = isCore ? { formula: masterUomAddr } : secUom;
+
+    isoDates.forEach((iso, di) => {
+      const bc = 3 + di*colsPerDate;
+      if (!lookup) {
+        ws.getCell(row,bc).value=''; ws.getCell(row,bc+1).value=''; ws.getCell(row,bc+2).value='';
         return;
       }
-      const{section,machineIdx}=lookup;
-      SHIFTS.forEach((_,si)=>{const raw=gv(section,iso,si,machineIdx),val=raw!==''?parseFloat(raw):'';put(ws,row,bc+si,val,sData(),typeof val==='number'?'n':'s');});
+      const { section, machineIdx } = lookup;
+      SHIFTS.forEach((_, si) => {
+        const raw = gv(section, iso, si, machineIdx);
+        const val = raw !== '' ? parseFloat(raw) : '';
+        const cell = ws.getCell(row, bc+si);
+        cell.value = (isCore && val !== '') ? { formula: coreConvFormula(masterUomAddr, val) } : val;
+      });
     });
   });
-  const lastCol=1+isoDates.length*colsPerDate,lastRow=2+machines.length;
-  ws['!ref']=`A1:${XLSX.utils.encode_col(lastCol-1)}${lastRow}`;ws['!merges']=merges;ws['!cols']=colWidths;ws['!rows']=rowHts;
-  const wb={SheetNames:['Production Data'],Sheets:{'Production Data':ws}};
-  const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
-  const fname=from===to?`Production_${toDisp(from).replace(/-/g,'_')}.xlsx`:`Production_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
-  XLSX.writeFile(wb,fname,{bookType:'xlsx',cellStyles:true});
+
+  const totalCols = 2 + isoDates.length*colsPerDate;
+  [hdrRow1,hdrRow2].forEach(r => {
+    for (let c=1;c<=totalCols;c++) {
+      const cell = ws.getCell(r,c);
+      cell.font = { bold:true, color:{argb:WHITE} };
+      cell.fill = r===hdrRow1 ? hdrFill : shiftHdrFill;
+      cell.alignment = { horizontal:'center', vertical:'center' };
+      cell.border = thinBorder;
+    }
+  });
+  machines.forEach((_, mIdx) => {
+    const row = dataStartRow+mIdx;
+    const nameCell = ws.getCell(row,1);
+    nameCell.font = { bold:true }; nameCell.fill = machFill; nameCell.border = thinBorder; nameCell.alignment = { horizontal:'left', indent:1 };
+    for (let c=2;c<=totalCols;c++) {
+      const cell = ws.getCell(row,c);
+      cell.border = thinBorder; cell.alignment = { horizontal:'center', vertical:'center' };
+    }
+  });
+
+  ws.getColumn(1).width = 28;
+  ws.getColumn(2).width = 7;
+  isoDates.forEach((_, di) => { ws.getColumn(3+di*colsPerDate).width=10; ws.getColumn(4+di*colsPerDate).width=10; ws.getColumn(5+di*colsPerDate).width=10; });
+
+  addConversionSheet(wb);
+
+  const buf = await wb.xlsx.writeBuffer();
+  const from=document.getElementById('expDateFrom').value, to=document.getElementById('expDateTo').value;
+  const fname = from===to ? `Production_${toDisp(from).replace(/-/g,'_')}.xlsx` : `Production_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
+  downloadXlsxBuffer(buf, fname);
   showToast(`📥 Exported in Alphabetical format! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
@@ -2882,70 +3122,101 @@ function buildALPHABETICAL(isoDates) {
 //  Columns: DATE | Machine Name | SHIFT | PRODUCTION
 //  One row per machine × shift × date
 // ════════════════════════════════════════
-function buildDAILYLOG(isoDates) {
-  const NAVY='FF1A3A5C', STEEL='FF2E6DA4', WHITE='FFFFFFFF', GREY_BG='FFF2F2F2', BLACK='FF000000', BORDER_C='FFB0B0B0';
-  function bdr(){const b={style:'thin',color:{rgb:BORDER_C}};return{top:b,bottom:b,left:b,right:b};}
-  function sHdr(){return{font:{bold:true,color:{rgb:WHITE},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:NAVY}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function sMach(){return{font:{bold:true,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:GREY_BG}},alignment:{horizontal:'left',vertical:'center',indent:1},border:bdr()};}
-  function sDate(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:'FFDCE6F1'}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function sShift(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:'FFE2EFDA'}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function sData(){return{font:{bold:false,color:{rgb:BLACK},sz:11,name:'Calibri'},fill:{patternType:'solid',fgColor:{rgb:WHITE}},alignment:{horizontal:'center',vertical:'center'},border:bdr()};}
-  function put(ws,r,c,v,s,t){const addr=XLSX.utils.encode_cell({r:r-1,c:c-1});ws[addr]={v:v==null?'':v,t:t||(typeof v==='number'?'n':'s'),s:s};}
-
+async function buildDAILYLOG(isoDates) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Production Data');
+  const NAVY='FF1A3A5C', WHITE='FFFFFFFF';
+  const hdrFill = { type:'pattern', pattern:'solid', fgColor:{argb:NAVY} };
+  const thinBorder = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
   const SHIFT_LABELS = ['1', '2', '3'];
-  const ws = {}, merges = [];
 
-  // Header row
-  put(ws,1,1,'DATE',sHdr());
-  put(ws,1,2,'Machine Name',sHdr());
-  put(ws,1,3,'SHIFT',sHdr());
-  put(ws,1,4,'PRODUCTION',sHdr());
+  // ── Master UOM selector row (Core Composer / Finger Jointer / L Jointer — ONE dropdown for the whole sheet) ──
+  const selRow = 1;
+  ws.getCell(selRow,1).value = 'Select UOM for Core Composer / Finger Jointer / L Jointer machines:';
+  ws.getCell(selRow,1).font = { bold:true, italic:true };
+  ws.mergeCells(selRow,1,selRow,2);
+  const ddCell = ws.getCell(selRow,3);
+  ddCell.value = 'SQM';
+  ddCell.font = { bold:true };
+  ddCell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFF2CC'} };
+  ddCell.alignment = { horizontal:'center' };
+  addCoreUomDropdown(ddCell);
+  const masterUomAddr = `$${ws.getColumn(3).letter}$${selRow}`;
 
-  let row = 2;
+  const hdrRow = 2, dataStartRow = 3;
+  ws.getCell(hdrRow,1).value = 'DATE';
+  ws.getCell(hdrRow,2).value = 'Machine Name';
+  ws.getCell(hdrRow,3).value = 'UOM';
+  ws.getCell(hdrRow,4).value = 'SHIFT';
+  ws.getCell(hdrRow,5).value = 'PRODUCTION';
+  for (let c=1;c<=5;c++) {
+    const cell = ws.getCell(hdrRow,c);
+    cell.font = { bold:true, color:{argb:WHITE} }; cell.fill = hdrFill; cell.alignment = { horizontal:'center' }; cell.border = thinBorder;
+  }
+
+  let row = dataStartRow;
   isoDates.forEach(iso => {
     const disp = toDisp(iso);
     SNAMES.forEach(secName => {
       const sec = SECTIONS[secName]; if (!sec) return;
+      const isCore = isCoreComposerSection(secName);
       const sepIdxSet = getSepIdx(secName);
       sec.machines.forEach((mname, mi) => {
-        if (sepIdxSet.has(mi)) return; // skip separator machines
+        if (sepIdxSet.has(mi)) return;
         if (!isMachineSelected(mname)) return;
         SHIFTS.forEach((_, si) => {
           const raw = gv(secName, iso, si, mi);
           const val = raw !== '' ? parseFloat(raw) : '';
-          put(ws, row, 1, disp, sDate());
-          put(ws, row, 2, exportName(mname), sMach());
-          put(ws, row, 3, SHIFT_LABELS[si], sShift(), 'n');
-          put(ws, row, 4, val, sData(), typeof val === 'number' ? 'n' : 's');
+          ws.getCell(row,1).value = disp;
+          ws.getCell(row,2).value = exportName(mname);
+          const uomCell = ws.getCell(row,3);
+          uomCell.value = isCore ? { formula: masterUomAddr } : (sec.uom || '');
+          ws.getCell(row,4).value = SHIFT_LABELS[si];
+          const prodCell = ws.getCell(row,5);
+          prodCell.value = (isCore && val !== '') ? { formula: coreConvFormula(masterUomAddr, val) } : val;
+          for (let c=1;c<=5;c++) {
+            const cell = ws.getCell(row,c);
+            cell.border = thinBorder;
+            cell.alignment = { horizontal: c===2 ? 'left' : 'center' };
+          }
           row++;
         });
       });
     });
   });
 
-  const lastRow = row - 1;
-  ws['!ref'] = `A1:D${lastRow}`;
-  ws['!merges'] = merges;
-  ws['!cols'] = [{wch:14},{wch:30},{wch:8},{wch:14}];
-  ws['!rows'] = Array.from({length:lastRow}, () => ({hpt:18}));
+  ws.getColumn(1).width = 14;
+  ws.getColumn(2).width = 30;
+  ws.getColumn(3).width = 8;
+  ws.getColumn(4).width = 8;
+  ws.getColumn(5).width = 14;
 
-  const wb = {SheetNames:['Production Data'], Sheets:{'Production Data':ws}};
+  addConversionSheet(wb);
+
+  const buf = await wb.xlsx.writeBuffer();
   const from = document.getElementById('expDateFrom').value;
   const to   = document.getElementById('expDateTo').value;
   const fname = from === to
     ? `DailyLog_${toDisp(from).replace(/-/g,'_')}.xlsx`
     : `DailyLog_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
-  XLSX.writeFile(wb, fname, {bookType:'xlsx', cellStyles:true});
+  downloadXlsxBuffer(buf, fname);
   showToast(`📥 Exported in Daily Log format! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
 // ════════════════════════════════════════
 //  SHEETWISE FORMAT
 // ════════════════════════════════════════
-function buildSheetwise(isoDates) {
-  const wb = XLSX.utils.book_new();
+async function buildSheetwise(isoDates) {
+  const wb = new ExcelJS.Workbook();
+  const NAVY='FF1A3A5C', WHITE='FFFFFFFF', HDR2BG='FFC5D9F1', TOTBG='FFB4E0DE';
+  const hdrFill = { type:'pattern', pattern:'solid', fgColor:{argb:NAVY} };
+  const hdr2Fill = { type:'pattern', pattern:'solid', fgColor:{argb:HDR2BG} };
+  const totFill = { type:'pattern', pattern:'solid', fgColor:{argb:TOTBG} };
+  const thinBorder = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+
   SNAMES.forEach(name => {
-    const sec = SECTIONS[name], rows = [];
+    const sec = SECTIONS[name]; if (!sec) return;
+    const isCore = isCoreComposerSection(name);
     const notesOn = !!NOTES_ENABLED[name];
     const sepIdxSet = getSepIdx(name);
     const mergedRows = getMergedMachineRows(name).filter(r => isMachineSelected(r.displayName));
@@ -2953,79 +3224,126 @@ function buildSheetwise(isoDates) {
     const mainMachines = mergedRows.filter(r => !sepIdxSet.has(r.machineIndices[0]));
     const sepMachines  = mergedRows.filter(r =>  sepIdxSet.has(r.machineIndices[0]));
     const colsPerDate = notesOn ? 6 : 3;
-    const h1 = ['Machine','UOM'];
-    isoDates.forEach(d => { h1.push(toDisp(d),'',''); if (notesOn) h1.push('Notes','',''); });
-    rows.push(h1);
-    const h2 = ['',''];
-    isoDates.forEach(() => {
-      h2.push('Shift 1 (8hr: 7am-3pm / 12hr: 7am-7pm)','Shift 2 (8hr: 3pm-11pm / 12hr: 7pm-7am)','Shift 3 (8hr: 11pm-7am)');
-      if (notesOn) h2.push('Shift 1 Note','Shift 2 Note','Shift 3 Note');
+    const ws = wb.addWorksheet(name.substring(0,31));
+    const totalCols = 2 + isoDates.length * colsPerDate;
+    const headerOffset = isCore ? 1 : 0;
+    let masterUomAddr = null;
+
+    if (isCore) {
+      const selRow = 1;
+      ws.getCell(selRow,1).value = `Select UOM for all ${name} machines:`;
+      ws.getCell(selRow,1).font = { bold:true, italic:true };
+      ws.mergeCells(selRow,1,selRow,2);
+      const ddCell = ws.getCell(selRow,3);
+      ddCell.value = 'SQM';
+      ddCell.font = { bold:true };
+      ddCell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFF2CC'} };
+      ddCell.alignment = { horizontal:'center' };
+      addCoreUomDropdown(ddCell);
+      masterUomAddr = `$${ws.getColumn(3).letter}$${selRow}`;
+    }
+
+    const hdrRow1 = 1 + headerOffset, hdrRow2 = 2 + headerOffset;
+    ws.getCell(hdrRow1,1).value = 'Machine';
+    ws.getCell(hdrRow1,2).value = 'UOM';
+    isoDates.forEach((d, di) => {
+      const base = 3 + di*colsPerDate;
+      ws.getCell(hdrRow1, base).value = toDisp(d);
+      ws.mergeCells(hdrRow1, base, hdrRow1, base+2);
+      if (notesOn) { ws.getCell(hdrRow1, base+3).value = 'Notes'; ws.mergeCells(hdrRow1, base+3, hdrRow1, base+5); }
     });
-    rows.push(h2);
-    mainMachines.forEach(({displayName,machineIndices}) => {
-      const row=[exportName(displayName),sec.uom];
-      isoDates.forEach(d => {
-        SHIFTS.forEach((_,si)=>{
-          let sum=null;
-          machineIndices.forEach(mi=>{const v=gv(name,d,si,mi);if(v!=='')sum=(sum||0)+(+v);});
-          row.push(sum!==null?sum:'');
+    isoDates.forEach((_, di) => {
+      const base = 3 + di*colsPerDate;
+      ws.getCell(hdrRow2, base).value   = 'Shift 1 (8hr: 7am-3pm / 12hr: 7am-7pm)';
+      ws.getCell(hdrRow2, base+1).value = 'Shift 2 (8hr: 3pm-11pm / 12hr: 7pm-7am)';
+      ws.getCell(hdrRow2, base+2).value = 'Shift 3 (8hr: 11pm-7am)';
+      if (notesOn) { ws.getCell(hdrRow2, base+3).value='Shift 1 Note'; ws.getCell(hdrRow2, base+4).value='Shift 2 Note'; ws.getCell(hdrRow2, base+5).value='Shift 3 Note'; }
+    });
+    for (let r=hdrRow1;r<=hdrRow2;r++) for (let c=1;c<=totalCols;c++) {
+      const cell = ws.getCell(r,c);
+      cell.font = { bold:true, color: r===hdrRow1?{argb:WHITE}:undefined };
+      cell.fill = r===hdrRow1 ? hdrFill : hdr2Fill;
+      cell.alignment = { horizontal:'center', vertical:'center', wrapText:true };
+      cell.border = thinBorder;
+    }
+
+    let rowIdx = hdrRow2 + 1;
+    const mainRowNums = [];
+
+    function writeRow(displayName, machineIndices) {
+      const r = rowIdx;
+      ws.getCell(r,1).value = exportName(displayName);
+      const uomCell = ws.getCell(r,2);
+      uomCell.value = isCore ? { formula: masterUomAddr } : sec.uom;
+
+      isoDates.forEach((d, di) => {
+        const base = 3 + di*colsPerDate;
+        SHIFTS.forEach((_, si) => {
+          let sum = null;
+          machineIndices.forEach(mi => { const v = gv(name,d,si,mi); if (v!=='') sum = (sum||0) + (+v); });
+          const cell = ws.getCell(r, base+si);
+          cell.value = (isCore && sum !== null) ? { formula: coreConvFormula(masterUomAddr, sum) } : (sum!==null ? sum : '');
         });
         if (notesOn) {
-          SHIFTS.forEach((_,si)=>{
-            const disp=toDisp(d);
-            const note=machineIndices.map(mi=>getNote(name,disp,si,mi)).filter(Boolean).join(' / ');
-            row.push(note);
+          SHIFTS.forEach((_, si) => {
+            const disp = toDisp(d);
+            ws.getCell(r, base+3+si).value = machineIndices.map(mi=>getNote(name,disp,si,mi)).filter(Boolean).join(' / ');
           });
         }
       });
-      rows.push(row);
-    });
-    const tr=['TOTAL',''];
-    isoDates.forEach(d=>{
-      SHIFTS.forEach((_,si)=>{
-        let s=0;
-        mainMachines.forEach(({machineIndices})=>machineIndices.forEach(mi=>s+=(+gv(name,d,si,mi)||0)));
-        tr.push(s||'');
-      });
-      if (notesOn) SHIFTS.forEach(()=>tr.push(''));
-    });
-    rows.push(tr);
-    sepMachines.forEach(({displayName,machineIndices})=>{
-      const row=[exportName(displayName),sec.uom];
-      isoDates.forEach(d=>{
-        SHIFTS.forEach((_,si)=>{
-          let sum=null;
-          machineIndices.forEach(mi=>{const v=gv(name,d,si,mi);if(v!=='')sum=(sum||0)+(+v);});
-          row.push(sum!==null?sum:'');
-        });
-        if (notesOn) {
-          SHIFTS.forEach((_,si)=>{
-            const disp=toDisp(d);
-            const note=machineIndices.map(mi=>getNote(name,disp,si,mi)).filter(Boolean).join(' / ');
-            row.push(note);
-          });
+      for (let c=1;c<=totalCols;c++) ws.getCell(r,c).border = thinBorder;
+      rowIdx++;
+      return r;
+    }
+
+    mainMachines.forEach(({ displayName, machineIndices }) => mainRowNums.push(writeRow(displayName, machineIndices)));
+
+    const totRow = rowIdx;
+    ws.getCell(totRow,1).value = 'TOTAL';
+    isoDates.forEach((d, di) => {
+      const base = 3 + di*colsPerDate;
+      SHIFTS.forEach((_, si) => {
+        const col = base + si;
+        if (isCore && mainRowNums.length) {
+          const colLetter = ws.getColumn(col).letter;
+          const first = mainRowNums[0], last = mainRowNums[mainRowNums.length-1];
+          ws.getCell(totRow, col).value = { formula: `SUM(${colLetter}${first}:${colLetter}${last})` };
+        } else {
+          let s = 0;
+          mainMachines.forEach(({ machineIndices }) => machineIndices.forEach(mi => s += (+gv(name,d,si,mi) || 0)));
+          ws.getCell(totRow, col).value = s || '';
         }
       });
-      rows.push(row);
+      if (notesOn) SHIFTS.forEach((_, si) => { ws.getCell(totRow, base+3+si).value = ''; });
     });
-    const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!merges']=isoDates.flatMap((_,di)=>{
-      const base=2+di*colsPerDate;
-      const m=[{s:{r:0,c:base},e:{r:0,c:base+2}}];
-      if(notesOn)m.push({s:{r:0,c:base+3},e:{r:0,c:base+5}});
-      return m;
+    for (let c=1;c<=totalCols;c++) {
+      const cell = ws.getCell(totRow,c);
+      cell.font = { bold:true }; cell.fill = totFill; cell.alignment = { horizontal:'center' }; cell.border = thinBorder;
+    }
+    rowIdx++;
+
+    sepMachines.forEach(({ displayName, machineIndices }) => writeRow(displayName, machineIndices));
+
+    let swMaxMachine = 8;
+    sec.machines.forEach(m => { if (m.length > swMaxMachine) swMaxMachine = m.length; });
+    ws.getColumn(1).width = swMaxMachine + 2;
+    ws.getColumn(2).width = 6;
+    const swShiftW = [41,42,24], noteColW = notesOn ? [28,28,28] : [];
+    isoDates.forEach((_, di) => {
+      const base = 3 + di*colsPerDate;
+      ws.getColumn(base).width   = swShiftW[0]+2;
+      ws.getColumn(base+1).width = swShiftW[1]+2;
+      ws.getColumn(base+2).width = swShiftW[2]+2;
+      if (notesOn) { ws.getColumn(base+3).width=noteColW[0]; ws.getColumn(base+4).width=noteColW[1]; ws.getColumn(base+5).width=noteColW[2]; }
     });
-    let swMaxMachine=8;
-    sec.machines.forEach(m=>{if(m.length>swMaxMachine)swMaxMachine=m.length;});
-    const swShiftW=[41,42,24];
-    const noteColW=notesOn?[28,28,28]:[];
-    ws['!cols']=[{wch:swMaxMachine+2},{wch:6},...isoDates.flatMap(()=>[...swShiftW.map(w=>({wch:w+2})),...noteColW.map(w=>({wch:w}))])];
-    ws['!rows']=[{hpt:18},{hpt:18}];
-    XLSX.utils.book_append_sheet(wb,ws,name.substring(0,31));
   });
-  const from=document.getElementById('expDateFrom').value,to=document.getElementById('expDateTo').value;
-  const fname=from===to?`production_sheetwise_${toDisp(from).replace(/-/g,'_')}.xlsx`:`production_sheetwise_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
-  XLSX.writeFile(wb,fname);
+
+  addConversionSheet(wb);
+
+  const buf = await wb.xlsx.writeBuffer();
+  const from = document.getElementById('expDateFrom').value, to = document.getElementById('expDateTo').value;
+  const fname = from===to ? `production_sheetwise_${toDisp(from).replace(/-/g,'_')}.xlsx` : `production_sheetwise_${toDisp(from).replace(/-/g,'_')}_to_${toDisp(to).replace(/-/g,'_')}.xlsx`;
+  downloadXlsxBuffer(buf, fname);
   showToast(`📥 Sheet-wise exported! (${isoDates.length} date${isoDates.length>1?'s':''})`);
 }
 
